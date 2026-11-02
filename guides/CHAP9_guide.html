@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHAP 9. MCP(Model Context Protocol) 완벽 가이드 | 비전공자 맞춤형 교재</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --primary: #4f46e5;
+      --primary-soft: #eef2ff;
+      --secondary: #0ea5e9;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --code-bg: #1e293b;
+      --code-text: #f8fafc;
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* 상단 히어로 배너 */
+    .hero {
+      background: linear-gradient(135deg, #312e81 0%, #4f46e5 55%, #0284c7 100%);
+      color: #ffffff;
+      padding: 64px 24px 56px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 0 auto;
+      font-size: 1.08rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* 레이아웃 */
+    .layout {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static !important;
+      }
+    }
+
+    /* 사이드바 네비게이션 */
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      padding: 0 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-list a {
+      display: block;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.93rem;
+      font-weight: 500;
+      padding: 9px 12px;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-list a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* 본문 섹션 카드 */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 640px) {
+      .section-card {
+        padding: 24px 18px;
+      }
+    }
+
+    .chapter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 5px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .section-card h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .section-card h3 {
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-card p {
+      color: #334155;
+      margin-bottom: 14px;
+    }
+
+    /* 비유 박스 & 팁 박스 */
+    .analogy-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin: 18px 0;
+    }
+
+    .analogy-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+    }
+
+    .tip-box {
+      background: #ecfdf5;
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .tip-title {
+      font-weight: 700;
+      color: #047857;
+      margin-bottom: 6px;
+    }
+
+    .warn-box {
+      background: #fffbeb;
+      border-left: 4px solid var(--warning);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .warn-title {
+      font-weight: 700;
+      color: #b45309;
+      margin-bottom: 6px;
+    }
+
+    /* 개념 그리드 */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .concept-item {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .concept-icon {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .concept-item h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .concept-item p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    /* 코드 블록 */
+    .code-container {
+      margin: 20px 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .code-header {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-badge {
+      background: rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .c-comment { color: #94a3b8; font-style: italic; }
+    .c-kw { color: #c084fc; font-weight: 600; }
+    .c-str { color: #86efac; }
+    .c-fn { color: #60a5fa; }
+    .c-num { color: #fbbf24; }
+
+    /* 표 스타일 */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-alt);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* 다이어그램 흐름도 */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--surface-alt);
+      padding: 24px;
+      border-radius: 14px;
+      margin: 20px 0;
+      border: 1px dashed #cbd5e1;
+    }
+
+    .flow-node {
+      background: var(--surface);
+      border: 2px solid var(--primary);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .flow-node.start-end {
+      background: var(--primary);
+      color: white;
+      border-radius: 999px;
+    }
+
+    .flow-node.cond {
+      border-color: var(--warning);
+      background: #fffbeb;
+    }
+
+    .flow-arrow {
+      font-weight: 800;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+    }
+
+    /* 인터랙티브 시뮬레이터 */
+    .simulator {
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      border: 2px solid #c7d2fe;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .sim-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sim-select {
+      flex: 1;
+      min-width: 240px;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .sim-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sim-btn:hover {
+      background: #4338ca;
+    }
+
+    .sim-result {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      font-size: 0.93rem;
+    }
+
+    .badge-pass {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    .badge-info {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    .badge-purple {
+      display: inline-block;
+      background: #f3e8ff;
+      color: #6b21a8;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    code.inline {
+      background: #f1f5f9;
+      color: #db2777;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 배너 -->
+  <header class="hero">
+    <div class="hero-badge">📚 만들면서 배우는 AI 에이전트 개발 입문+실전</div>
+    <h1>CHAP 9. MCP(Model Context Protocol) 완벽 가이드</h1>
+    <p>'AI계의 USB-C 통합 포트' MCP의 개념부터 나만의 MCP 서버/클라이언트 제작, 멀티 에이전트 연동까지 완벽 정복</p>
+  </header>
+
+  <div class="layout">
+      <!-- 왼쪽 목차 사이드바 -->
+    <aside class="sidebar">
+      <div class="sidebar-title">목차 (CHAP 9)</div>
+      <ul class="nav-list">
+        <li><a href="#intro">🌱 1. MCP란 무엇일까? (핵심 개념)</a></li>
+        <li><a href="#mcp-arch">🧩 2. MCP의 구조와 3대 구성요소</a></li>
+        <li><a href="#mcp-flow">🔄 3. MCP 4단계 동작 원리와 통신선</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="#sec-9-1">4️⃣ [실습 1] 나만의 MCP 서버 만들기</a></li>
+        <li><a href="#sec-9-2">5️⃣ [실습 1] MCP 클라이언트 연결하기</a></li>
+        <li><a href="#sec-9-3">6️⃣ [실습 2] 파일 검색 MCP 서버</a></li>
+        <li><a href="#sec-9-4">7️⃣ [실습 2] 멀티 서버 &amp; 슈퍼바이저</a></li>
+        <li><a href="#simulator">🎮 인터랙티브 MCP 호출 시뮬레이터</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="index.html">🏠 전체 챕터 목차로 돌아가기</a></li>
+      </ul>
+    </aside>
+
+    <!-- 오른쪽 본문 영역 -->
+    <main class="content">
+
+      <!-- 0-1. MCP란 무엇인가? (깊이 있고 쉬운 설명 + Before/After 일러스트) -->
+      <section id="intro" class="section-card">
+        <span class="chapter-tag">🌱 개념 완벽 이해 1</span>
+        <h2>1. MCP(Model Context Protocol)란 무엇인가요?</h2>
+        <p>
+          <strong>MCP(Model Context Protocol, 모델 컨텍스트 프로토콜)</strong>는 한 문장으로 요약하면 <strong>"인공지능(LLM)이 세상 밖의 데이터나 도구와 대화할 때 사용하는 세계 공통 표준 규격(AI계의 USB-C 포트)"</strong>입니다.
+        </p>
+        <p>
+          단어가 조금 어렵게 느껴지시나요? 세 단어를 하나씩 뜯어보면 아주 쉽습니다!
+        </p>
+        <ul style="padding-left: 22px; margin-bottom: 18px; color: #334155;">
+          <li><strong>Model (모델)</strong>: 우리가 사용하는 <code class="inline">gemini-3.8-flash</code>, ChatGPT, Claude 같은 <strong>AI 두뇌</strong>를 뜻합니다.</li>
+          <li><strong>Context (컨텍스트 / 맥락·정보)</strong>: AI가 대답을 잘하기 위해 참고해야 할 <strong>외부 정보와 도구</strong>(내 컴퓨터의 메모장 파일, 오늘의 일기, 실시간 인터넷 검색 결과, 회사 데이터베이스 등)를 뜻합니다.</li>
+          <li><strong>Protocol (프로토콜 / 약속·규격)</strong>: AI 두뇌와 외부 도구가 서로 헷갈리지 않고 데이터를 주고받기 위해 정해둔 <strong>공통의 대화 규칙(연결 단자 규격)</strong>입니다.</li>
+        </ul>
+
+        <h3>🤔 왜 MCP가 필요하게 되었을까요? ("방 안에 갇힌 천재" 이야기)</h3>
+        <p>
+          Gemini나 GPT 같은 대규모 언어 모델(LLM)은 세상 모든 지식을 공부한 <strong>천재 학자</strong>와 같습니다. 하지만 이 천재에게는 치명적인 약점이 하나 있습니다. 바로 <strong>아무것도 없는 방 안에 혼자 갇혀 있다</strong>는 점입니다!
+        </p>
+        <p>
+          그래서 AI에게 <em>"내 컴퓨터 바탕화면에 있는 <code class="inline">my_info.txt</code> 파일을 읽어서 요약해 줘"</em>라고 시키면, 기본 AI는 <em>"저는 당신의 컴퓨터 파일을 열 수 있는 손이 없습니다"</em>라고 대답합니다. AI에게 파일을 읽는 손과 인터넷을 검색하는 발을 달아주어야 비로소 <strong>'AI 에이전트'</strong>가 됩니다.
+        </p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">🔌 일상 비유: 옛날 휴대폰 충전기 대혼란 vs USB-C 천하통일</div>
+          <p style="margin-bottom:0;">
+            • <strong>과거 (MCP가 없던 시절)</strong>: 옛날에는 삼성폰, LG폰, 아이폰, 디지털카메라마다 충전기 구멍 모양이 전부 달랐습니다. AI 세상도 똑같아서, <strong>Gemini에 '내 파일 읽기'를 연결하는 코드</strong>와 <strong>Claude에 '내 파일 읽기'를 연결하는 코드</strong>를 각각 따로 짜야만 했습니다.<br/>
+            • <strong>현재 (MCP가 등장한 이후)</strong>: 이제 모든 기기가 <strong>USB-C 단자</strong> 하나로 통일되었듯, <strong>'내 파일 읽기 도구'를 MCP 규격(MCP 서버)으로 딱 한 번만 만들어 두면</strong>, Gemini든 Claude든 GPT든 선만 꽂아서 그대로 가져다 쓸 수 있게 되었습니다!
+          </p>
+        </div>
+
+        <!-- 시각 일러스트 1: Before MCP vs After MCP -->
+        <div style="margin: 26px 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+          <div style="font-weight: 800; font-size: 1.02rem; color: #1e293b; margin-bottom: 14px; text-align: center;">
+            🖼️ [그림 1] 한눈에 보는 MCP 등장 전·후 비교 (M × N 거미줄 vs USB-C 통합 허브)
+          </div>
+          <svg viewBox="0 0 880 390" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="display:block; margin:0 auto; max-width:860px;">
+            <defs>
+              <linearGradient id="bgBefore" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fff1f2"/>
+                <stop offset="100%" stop-color="#ffe4e6"/>
+              </linearGradient>
+              <linearGradient id="bgAfter" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#eef2ff"/>
+                <stop offset="100%" stop-color="#e0e7ff"/>
+              </linearGradient>
+              <linearGradient id="mcpHubGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#4f46e5"/>
+                <stop offset="50%" stop-color="#0ea5e9"/>
+                <stop offset="100%" stop-color="#10b981"/>
+              </linearGradient>
+            </defs>
+
+            <!-- 왼쪽 카드: Before MCP -->
+            <rect x="15" y="10" width="410" height="370" rx="16" fill="url(#bgBefore)" stroke="#fecdd3" stroke-width="2"/>
+            <rect x="35" y="26" width="150" height="28" rx="14" fill="#e11d48"/>
+            <text x="110" y="45" fill="#ffffff" font-size="13" font-weight="800" text-anchor="middle">❌ MCP 도입 이전</text>
+            <text x="220" y="76" fill="#881337" font-size="15" font-weight="800" text-anchor="middle">각 AI마다 전용 연결 코드를 따로 개발 (복잡한 거미줄!)</text>
+
+            <!-- Before: AI 모델들 -->
+            <rect x="35" y="96" width="105" height="46" rx="10" fill="#ffffff" stroke="#f43f5e" stroke-width="2"/>
+            <text x="87" y="124" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle">🤖 Gemini 앱</text>
+
+            <rect x="167" y="96" width="105" height="46" rx="10" fill="#ffffff" stroke="#f43f5e" stroke-width="2"/>
+            <text x="220" y="124" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle">🤖 Claude 앱</text>
+
+            <rect x="300" y="96" width="105" height="46" rx="10" fill="#ffffff" stroke="#f43f5e" stroke-width="2"/>
+            <text x="352" y="124" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle">🤖 GPT 앱</text>
+
+            <!-- Before: 얽히고설킨 선들 (9개) -->
+            <g stroke="#e11d48" stroke-width="2" stroke-dasharray="5,4" opacity="0.75">
+              <line x1="87" y1="142" x2="87" y2="268"/>
+              <line x1="87" y1="142" x2="220" y2="268"/>
+              <line x1="87" y1="142" x2="352" y2="268"/>
+              <line x1="220" y1="142" x2="87" y2="268"/>
+              <line x1="220" y1="142" x2="220" y2="268"/>
+              <line x1="220" y1="142" x2="352" y2="268"/>
+              <line x1="352" y1="142" x2="87" y2="268"/>
+              <line x1="352" y1="142" x2="220" y2="268"/>
+              <line x1="352" y1="142" x2="352" y2="268"/>
+            </g>
+            <rect x="125" y="188" width="190" height="32" rx="8" fill="#ffe4e6" stroke="#f43f5e" stroke-width="1.5"/>
+            <text x="220" y="209" fill="#be123c" font-size="12.5" font-weight="800" text-anchor="middle">⚡ 단자 모양이 다 달라서 9번 작업!</text>
+
+            <!-- Before: 도구들 -->
+            <rect x="35" y="268" width="105" height="50" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+            <text x="87" y="290" fill="#0f172a" font-size="12.5" font-weight="700" text-anchor="middle">📂 내 컴퓨터 파일</text>
+            <text x="87" y="308" fill="#64748b" font-size="10.5" text-anchor="middle">(자체 규격 A)</text>
+
+            <rect x="167" y="268" width="105" height="50" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+            <text x="220" y="290" fill="#0f172a" font-size="12.5" font-weight="700" text-anchor="middle">🌐 웹 검색(Tavily)</text>
+            <text x="220" y="308" fill="#64748b" font-size="10.5" text-anchor="middle">(자체 규격 B)</text>
+
+            <rect x="300" y="268" width="105" height="50" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+            <text x="352" y="290" fill="#0f172a" font-size="12.5" font-weight="700" text-anchor="middle">☁️ 구글 드라이브</text>
+            <text x="352" y="308" fill="#64748b" font-size="10.5" text-anchor="middle">(자체 규격 C)</text>
+
+            <text x="220" y="352" fill="#9f1239" font-size="12.5" font-weight="700" text-anchor="middle">😩 새 도구나 새 AI가 나올 때마다 코드를 다시 짜야 함</text>
+
+            <!-- 오른쪽 카드: After MCP -->
+            <rect x="455" y="10" width="410" height="370" rx="16" fill="url(#bgAfter)" stroke="#a5b4fc" stroke-width="2"/>
+            <rect x="475" y="26" width="160" height="28" rx="14" fill="#4f46e5"/>
+            <text x="555" y="45" fill="#ffffff" font-size="13" font-weight="800" text-anchor="middle">✅ MCP 도입 이후</text>
+            <text x="660" y="76" fill="#1e1b4b" font-size="15" font-weight="800" text-anchor="middle">USB-C처럼 'MCP 표준' 하나로 모든 도구와 즉시 연결!</text>
+
+            <!-- After: AI 모델들 -->
+            <rect x="475" y="96" width="105" height="46" rx="10" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+            <text x="527" y="124" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle">🤖 Gemini 앱</text>
+
+            <rect x="607" y="96" width="105" height="46" rx="10" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+            <text x="660" y="124" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle">🤖 Claude 앱</text>
+
+            <rect x="740" y="96" width="105" height="46" rx="10" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+            <text x="792" y="124" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle">🤖 GPT 앱</text>
+
+            <!-- After: 위쪽 연결선 -->
+            <g stroke="#4f46e5" stroke-width="3">
+              <line x1="527" y1="142" x2="527" y2="182"/>
+              <line x1="660" y1="142" x2="660" y2="182"/>
+              <line x1="792" y1="142" x2="792" y2="182"/>
+            </g>
+
+            <!-- 가운데 MCP 통합 허브 바 -->
+            <rect x="475" y="182" width="370" height="44" rx="22" fill="url(#mcpHubGrad)"/>
+            <text x="660" y="209" fill="#ffffff" font-size="14.5" font-weight="800" text-anchor="middle">🔌 MCP (Model Context Protocol) 표준 허브</text>
+
+            <!-- After: 아래쪽 연결선 -->
+            <g stroke="#0ea5e9" stroke-width="3">
+              <line x1="527" y1="226" x2="527" y2="268"/>
+              <line x1="660" y1="226" x2="660" y2="268"/>
+              <line x1="792" y1="226" x2="792" y2="268"/>
+            </g>
+
+            <!-- After: MCP 서버들 -->
+            <rect x="475" y="268" width="105" height="50" rx="10" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
+            <text x="527" y="290" fill="#0f172a" font-size="12.5" font-weight="700" text-anchor="middle">📂 파일 MCP 서버</text>
+            <text x="527" y="308" fill="#059669" font-size="10.5" font-weight="700" text-anchor="middle">(USB-C 표준 플러그)</text>
+
+            <rect x="607" y="268" width="105" height="50" rx="10" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
+            <text x="660" y="290" fill="#0f172a" font-size="12.5" font-weight="700" text-anchor="middle">🌐 검색 MCP 서버</text>
+            <text x="660" y="308" fill="#059669" font-size="10.5" font-weight="700" text-anchor="middle">(USB-C 표준 플러그)</text>
+
+            <rect x="740" y="268" width="105" height="50" rx="10" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
+            <text x="792" y="290" fill="#0f172a" font-size="12.5" font-weight="700" text-anchor="middle">☁️ 드라이브 MCP</text>
+            <text x="792" y="308" fill="#059669" font-size="10.5" font-weight="700" text-anchor="middle">(USB-C 표준 플러그)</text>
+
+            <text x="660" y="352" fill="#312e81" font-size="12.5" font-weight="700" text-anchor="middle">🎉 한 번 만든 MCP 서버는 어떤 AI 에이전트에서나 즉시 재사용!</text>
+          </svg>
+        </div>
+      </section>
+
+      <!-- 0-2. MCP의 구조와 3대 구성요소 (아키텍처 일러스트) -->
+      <section id="mcp-arch" class="section-card">
+        <span class="chapter-tag">🧩 개념 완벽 이해 2</span>
+        <h2>2. MCP의 전체 구조와 서버 안의 '3가지 보물상자'</h2>
+        <p>
+          MCP 시스템을 만들 때는 항상 <strong>클라이언트(<code class="inline">client.py</code>)</strong>와 <strong>서버(<code class="inline">server.py</code>)</strong> 두 편으로 나누어 작성합니다. 왜 굳이 파일 두 개로 나눌까요?
+        </p>
+        <p>
+          노트북 본체(클라이언트)와 외장하드(서버)가 분리되어 있어야, 외장하드를 다른 노트북에도 꽂아서 쓸 수 있기 때문입니다! 아래 그림을 통해 각 역할을 살펴봅시다.
+        </p>
+
+        <!-- 시각 일러스트 2: MCP 호스트-클라이언트-서버 아키텍처 다이어그램 -->
+        <div style="margin: 24px 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+          <div style="font-weight: 800; font-size: 1.02rem; color: #1e293b; margin-bottom: 14px; text-align: center;">
+            🖼️ [그림 2] MCP 클라이언트(client.py)와 MCP 서버(server.py)의 내부 구조도
+          </div>
+          <svg viewBox="0 0 880 340" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="display:block; margin:0 auto; max-width:860px;">
+            <!-- 왼쪽: 내 에이전트 프로그램 (client.py) -->
+            <rect x="20" y="20" width="350" height="300" rx="16" fill="#eef2ff" stroke="#6366f1" stroke-width="2.5"/>
+            <text x="195" y="52" fill="#312e81" font-size="15.5" font-weight="800" text-anchor="middle">💻 내 에이전트 앱 (client.py)</text>
+            <text x="195" y="72" fill="#4f46e5" font-size="12" font-weight="600" text-anchor="middle">비유: USB-C 포트가 달린 노트북 본체</text>
+
+            <!-- LLM 박스 -->
+            <rect x="45" y="92" width="300" height="86" rx="12" fill="#ffffff" stroke="#818cf8" stroke-width="2"/>
+            <text x="195" y="120" fill="#1e1b4b" font-size="14" font-weight="800" text-anchor="middle">🧠 AI 두뇌 (gemini-3.8-flash)</text>
+            <text x="195" y="142" fill="#475569" font-size="12" text-anchor="middle">"사용자 질문을 보니 일기 저장 도구가 필요하네!"</text>
+            <text x="195" y="162" fill="#6366f1" font-size="11.5" font-weight="700" text-anchor="middle">create_agent(model, tools)</text>
+
+            <!-- 화살표 -->
+            <line x1="195" y1="178" x2="195" y2="206" stroke="#4f46e5" stroke-width="2.5"/>
+
+            <!-- MCP Client 박스 -->
+            <rect x="45" y="206" width="300" height="90" rx="12" fill="#4f46e5"/>
+            <text x="195" y="236" fill="#ffffff" font-size="14" font-weight="800" text-anchor="middle">🔌 MCP 클라이언트 (ClientSession)</text>
+            <text x="195" y="258" fill="#e0e7ff" font-size="12" text-anchor="middle">서버에 연결해 도구(load_mcp_tools)와</text>
+            <text x="195" y="276" fill="#e0e7ff" font-size="12" text-anchor="middle">프롬프트(load_mcp_prompt)를 가져오는 단자</text>
+
+            <!-- 가운데: MCP 통신 케이블 -->
+            <rect x="378" y="135" width="124" height="70" rx="12" fill="#0f172a"/>
+            <text x="440" y="164" fill="#38bdf8" font-size="13" font-weight="800" text-anchor="middle">⚡ MCP 표준 통신</text>
+            <text x="440" y="185" fill="#cbd5e1" font-size="11" text-anchor="middle">stdio 또는 HTTP</text>
+            <line x1="345" y1="250" x2="395" y2="205" stroke="#0ea5e9" stroke-width="3.5" stroke-dasharray="6,4"/>
+            <line x1="485" y1="205" x2="530" y2="250" stroke="#0ea5e9" stroke-width="3.5" stroke-dasharray="6,4"/>
+
+            <!-- 오른쪽: MCP 서버 (server.py) -->
+            <rect x="510" y="20" width="350" height="300" rx="16" fill="#ecfdf5" stroke="#10b981" stroke-width="2.5"/>
+            <text x="685" y="52" fill="#064e3b" font-size="15.5" font-weight="800" text-anchor="middle">🧰 MCP 서버 (server.py / FastMCP)</text>
+            <text x="685" y="72" fill="#059669" font-size="12" font-weight="600" text-anchor="middle">비유: 노트북에 꽂아 쓰는 외장 도구 상자</text>
+
+            <!-- 보물 1: Tools -->
+            <rect x="535" y="90" width="300" height="64" rx="10" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+            <text x="555" y="116" fill="#065f46" font-size="13.5" font-weight="800">🛠️ 1. Tools (@mcp.tool)</text>
+            <text x="555" y="138" fill="#475569" font-size="12">AI가 실행하는 행동 버튼 (일기 저장, 파일 검색 등)</text>
+
+            <!-- 보물 2: Prompts -->
+            <rect x="535" y="166" width="300" height="64" rx="10" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+            <text x="555" y="192" fill="#065f46" font-size="13.5" font-weight="800">📜 2. Prompts (@mcp.prompt)</text>
+            <text x="555" y="214" fill="#475569" font-size="12">미리 잘 짜둔 역할극 대본 (친절한 비서 말투 매뉴얼)</text>
+
+            <!-- 보물 3: Resources -->
+            <rect x="535" y="242" width="300" height="60" rx="10" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+            <text x="555" y="267" fill="#065f46" font-size="13.5" font-weight="800">📂 3. Resources (외부 파일/DB)</text>
+            <text x="555" y="288" fill="#475569" font-size="12">도구가 읽고 쓰는 실제 데이터 (my_info.txt, diary 폴더)</text>
+          </svg>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-item">
+            <div class="concept-icon">🛠️</div>
+            <h4>보물 1: 도구 (<code class="inline">@mcp.tool</code>)</h4>
+            <p><strong>"AI의 손과 발"</strong><br/>파이썬 함수 위에 <code class="inline">@mcp.tool()</code> 스티커만 붙이면, AI가 필요할 때 스스로 호출할 수 있는 도구가 됩니다. 이때 함수 아래에 적는 설명글(독스트링 <code class="inline">"""..."""</code>)이 곧 <strong>AI가 읽는 도구 사용설명서</strong>가 됩니다!</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">📜</div>
+            <h4>보물 2: 프롬프트 (<code class="inline">@mcp.prompt</code>)</h4>
+            <p><strong>"미리 준비된 모범 대본"</strong><br/>매번 클라이언트에서 긴 지시사항을 적을 필요 없이, 서버에 <code class="inline">@mcp.prompt()</code>로 모범 대본을 저장해 두고 첫 대화 때 불러올 수 있습니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">🔌</div>
+            <h4>MCP 클라이언트 (<code class="inline">ClientSession</code>)</h4>
+            <p><strong>"도구 배달부"</strong><br/>서버에 접속해 <code class="inline">load_mcp_tools()</code>로 도구들을 싹 긁어모은 뒤, 랭그래프 에이전트(<code class="inline">create_agent</code>)의 손에 쥐여주는 역할을 합니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">🎛️</div>
+            <h4>멀티허브 (<code class="inline">MultiServerMCPClient</code>)</h4>
+            <p><strong>"USB-C 멀티탭"</strong><br/>실습 2에서 사용하며, 내 컴퓨터의 파일 서버와 인터넷의 웹 검색 서버를 동시에 꽂아 여러 에이전트가 나눠 쓰게 해줍니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 0-3. MCP의 4단계 대화 순서와 2가지 통신 방식 (시각 일러스트 3) -->
+      <section id="mcp-flow" class="section-card">
+        <span class="chapter-tag">🔄 개념 완벽 이해 3</span>
+        <h2>3. MCP는 어떤 순서로 일할까요? (4단계 동작 원리와 2가지 연결선)</h2>
+        <p>
+          사용자가 질문을 던졌을 때, <strong>클라이언트(<code class="inline">client.py</code>)</strong>와 <strong>서버(<code class="inline">server.py</code>)</strong> 사이에서 실제로 무슨 일이 일어나는지 4단계 만화처럼 따라가 볼까요?
+        </p>
+
+        <!-- 시각 일러스트 3: 4단계 동작 순서 SVG -->
+        <div style="margin: 22px 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+          <div style="font-weight: 800; font-size: 1.02rem; color: #1e293b; margin-bottom: 14px; text-align: center;">
+            🖼️ [그림 3] 사용자 질문부터 도구 실행까지 MCP의 4단계 대화 과정
+          </div>
+          <svg viewBox="0 0 880 250" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="display:block; margin:0 auto; max-width:860px;">
+            <!-- Step 1 -->
+            <rect x="15" y="20" width="195" height="210" rx="14" fill="#ffffff" stroke="#6366f1" stroke-width="2"/>
+            <circle cx="45" cy="50" r="16" fill="#4f46e5"/>
+            <text x="45" y="55" fill="#ffffff" font-size="14" font-weight="800" text-anchor="middle">1</text>
+            <text x="72" y="55" fill="#1e1b4b" font-size="14" font-weight="800">인사 &amp; 메뉴판 받기</text>
+            <text x="112" y="95" font-size="30" text-anchor="middle">🤝 📋</text>
+            <text x="112" y="130" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">클라이언트가 서버에 접속해</text>
+            <text x="112" y="148" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">"무슨 도구 있니?" 물어보고</text>
+            <text x="112" y="166" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">도구 목록(메뉴판)을 받아옵니다.</text>
+            <rect x="30" y="185" width="165" height="28" rx="6" fill="#eef2ff"/>
+            <text x="112" y="203" fill="#4338ca" font-size="11" font-family="monospace" font-weight="700" text-anchor="middle">load_mcp_tools(session)</text>
+
+            <text x="221" y="125" fill="#94a3b8" font-size="20" font-weight="800" text-anchor="middle">➔</text>
+
+            <!-- Step 2 -->
+            <rect x="235" y="20" width="195" height="210" rx="14" fill="#ffffff" stroke="#0ea5e9" stroke-width="2"/>
+            <circle cx="265" cy="50" r="16" fill="#0ea5e9"/>
+            <text x="265" y="55" fill="#ffffff" font-size="14" font-weight="800" text-anchor="middle">2</text>
+            <text x="292" y="55" fill="#0c4a6e" font-size="14" font-weight="800">AI 두뇌의 도구 선택</text>
+            <text x="332" y="95" font-size="30" text-anchor="middle">💬 🧠</text>
+            <text x="332" y="130" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">사용자의 질문을 들은 AI가</text>
+            <text x="332" y="148" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">메뉴판의 설명서(독스트링)를 보고</text>
+            <text x="332" y="166" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">필요한 도구를 스스로 고릅니다.</text>
+            <rect x="250" y="185" width="165" height="28" rx="6" fill="#e0f2fe"/>
+            <text x="332" y="203" fill="#0369a1" font-size="11" font-family="monospace" font-weight="700" text-anchor="middle">gemini-3.8-flash 판단</text>
+
+            <text x="441" y="125" fill="#94a3b8" font-size="20" font-weight="800" text-anchor="middle">➔</text>
+
+            <!-- Step 3 -->
+            <rect x="455" y="20" width="195" height="210" rx="14" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
+            <circle cx="485" cy="50" r="16" fill="#10b981"/>
+            <text x="485" y="55" fill="#ffffff" font-size="14" font-weight="800" text-anchor="middle">3</text>
+            <text x="512" y="55" fill="#064e3b" font-size="14" font-weight="800">서버에서 실제 실행</text>
+            <text x="552" y="95" font-size="30" text-anchor="middle">🛠️ 📄</text>
+            <text x="552" y="130" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">MCP 서버가 요청을 받아</text>
+            <text x="552" y="148" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">실제로 파일을 읽거나 저장한 뒤</text>
+            <text x="552" y="166" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">그 결과물을 돌려보냅니다.</text>
+            <rect x="470" y="185" width="165" height="28" rx="6" fill="#dcfce7"/>
+            <text x="552" y="203" fill="#166534" font-size="11" font-family="monospace" font-weight="700" text-anchor="middle">@mcp.tool() 함수 작동!</text>
+
+            <text x="661" y="125" fill="#94a3b8" font-size="20" font-weight="800" text-anchor="middle">➔</text>
+
+            <!-- Step 4 -->
+            <rect x="675" y="20" width="190" height="210" rx="14" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+            <circle cx="705" cy="50" r="16" fill="#f59e0b"/>
+            <text x="705" y="55" fill="#ffffff" font-size="14" font-weight="800" text-anchor="middle">4</text>
+            <text x="732" y="55" fill="#78350f" font-size="14" font-weight="800">최종 답변 완성</text>
+            <text x="770" y="95" font-size="30" text-anchor="middle">✨ 😊</text>
+            <text x="770" y="130" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">도구 실행 결과를 전달받은</text>
+            <text x="770" y="148" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">AI가 내용을 보기 좋게 정리해</text>
+            <text x="770" y="166" fill="#334155" font-size="12" font-weight="600" text-anchor="middle">사용자에게 최종 대답합니다.</text>
+            <rect x="690" y="185" width="160" height="28" rx="6" fill="#fef3c7"/>
+            <text x="770" y="203" fill="#b45309" font-size="11" font-family="monospace" font-weight="700" text-anchor="middle">AIMessage 최종 응답</text>
+          </svg>
+        </div>
+
+        <h3>📡 알아두면 끝! MCP의 2가지 연결 방식 (<code class="inline">stdio</code> vs <code class="inline">streamable_http</code>)</h3>
+        <p>
+          코드에서 <code class="inline">transport="stdio"</code> 또는 <code class="inline">transport="streamable_http"</code>라는 표현이 등장합니다. 이 둘은 <strong>"클라이언트와 서버가 어디에 있느냐"</strong>에 따라 고르는 연결선 종류일 뿐입니다!
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>연결 방식 (Transport)</th>
+                <th>일상 비유</th>
+                <th>언제 사용하나요?</th>
+                <th>챕터 9 코드 예시</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. <code class="inline">stdio</code></strong><br/><small>(Standard Input/Output)</small></td>
+                <td>🔌 <strong>내 컴퓨터에 직접 꽂는 유선 USB 케이블</strong></td>
+                <td>MCP 서버 파일(<code class="inline">server.py</code>)이 <strong>내 컴퓨터 안</strong>에 있을 때 사용합니다. 클라이언트가 자동으로 서버 파이썬 파일을 켜서 대화합니다.</td>
+                <td>• 실습 1: 개인 비서 &amp; 일기장 서버<br/>• 실습 2: 로컬 파일 탐색 서버</td>
+              </tr>
+              <tr>
+                <td><strong>2. <code class="inline">streamable_http</code></strong><br/><small>(HTTP 네트워크 통신)</small></td>
+                <td>📶 <strong>인터넷으로 연결하는 무선 Wi-Fi</strong></td>
+                <td>MCP 서버가 내 컴퓨터가 아니라 <strong>외부 인터넷 주소(<code class="inline">https://...</code>)</strong>에서 돌아가고 있을 때 사용합니다.</td>
+                <td>• 실습 2: Tavily 실시간 웹 검색 원격 MCP 서버</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 1. mcp_agent/server.py -->
+      <section id="sec-9-1" class="section-card">
+        <span class="chapter-tag">파일: CHAP9_MCP/mcp_agent/server.py</span>
+        <h2>1. [실습 1] 나만의 첫 MCP 서버 만들기 (@mcp.tool &amp; @mcp.prompt)</h2>
+        <p><code class="inline">FastMCP</code>를 사용하면 일반 파이썬 함수 위에 데코레이터(<code class="inline">@mcp.tool()</code>, <code class="inline">@mcp.prompt()</code>)만 붙여서 손쉽게 MCP 서버를 만들 수 있습니다.</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 CHAP9_MCP/mcp_agent/server.py 핵심 구조</span>
+            <span class="code-badge">FastMCP 서버</span>
+          </div>
+          <pre><span class="c-kw">from</span> mcp.server.fastmcp <span class="c-kw">import</span> FastMCP
+<span class="c-kw">from</span> mcp.server.fastmcp.prompts <span class="c-kw">import</span> base
+
+<span class="c-comment"># [ 1 ] "MCPServer"라는 이름의 도구 상자(서버) 생성</span>
+mcp = <span class="c-fn">FastMCP</span>(<span class="c-str">"MCPServer"</span>)
+
+<span class="c-comment"># [ 2 ] @mcp.tool(): 내 정보 파일(my_info.txt)을 읽는 도구 등록</span>
+@mcp.<span class="c-fn">tool</span>()
+<span class="c-kw">def</span> <span class="c-fn">read_user_info</span>() -&gt; <span class="c-fn">str</span>:
+    <span class="c-str">"""사용자의 정보를 담고 있는 txt 파일을 읽어옵니다."""</span>
+    ...
+
+<span class="c-comment"># @mcp.tool(): 대화 요약, 감정, 다짐을 받아 일기장 파일로 저장하는 도구 등록</span>
+@mcp.<span class="c-fn">tool</span>()
+<span class="c-kw">def</span> <span class="c-fn">save_diary</span>(conversation_summary: <span class="c-fn">str</span>, emotion: <span class="c-fn">str</span>, resolution: <span class="c-fn">str</span>) -&gt; <span class="c-fn">dict</span>:
+    <span class="c-str">"""일기 형태로 텍스트 파일을 저장합니다."""</span>
+    ...
+
+<span class="c-comment"># @mcp.prompt(): 자주 쓰는 '친절한 개인 비서 매뉴얼 대본'을 서버에 미리 저장</span>
+@mcp.<span class="c-fn">prompt</span>()
+<span class="c-kw">def</span> <span class="c-fn">default_prompt</span>(message: <span class="c-fn">str</span>) -&gt; <span class="c-fn">list</span>[base.Message]:
+    <span class="c-kw">return</span> [base.<span class="c-fn">AssistantMessage</span>(<span class="c-str">"당신은 따뜻하고 공감 능력이 뛰어난 개인 비서입니다..."</span>), base.<span class="c-fn">UserMessage</span>(message)]
+
+<span class="c-kw">if</span> __name__ == <span class="c-str">"__main__"</span>:
+    mcp.<span class="c-fn">run</span>(transport=<span class="c-str">"stdio"</span>)</pre>
+        </div>
+      </section>
+
+      <!-- 2. mcp_agent/client.py -->
+      <section id="sec-9-2" class="section-card">
+        <span class="chapter-tag">파일: CHAP9_MCP/mcp_agent/client.py</span>
+        <h2>2. [실습 1] MCP 클라이언트로 서버 도구와 프롬프트 불러오기</h2>
+        <p><code class="inline">client.py</code>에서는 <code class="inline">StdioServerParameters</code>로 방금 만든 <code class="inline">server.py</code>를 실행해 연결하고, 서버 안의 도구(<code class="inline">load_mcp_tools</code>)와 프롬프트(<code class="inline">load_mcp_prompt</code>)를 꺼내 <code class="inline">gemini-3.8-flash</code> 에이전트에게 장착합니다.</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 CHAP9_MCP/mcp_agent/client.py 핵심 구조</span>
+            <span class="code-badge">gemini-3.8-flash</span>
+          </div>
+          <pre>model = <span class="c-fn">ChatGoogleGenerativeAI</span>(model=<span class="c-str">"gemini-3.8-flash"</span>)
+
+<span class="c-comment"># 현재 가상환경의 파이썬(sys.executable)으로 같은 폴더의 server.py를 실행하도록 설정</span>
+SERVER_SCRIPT = <span class="c-fn">str</span>(<span class="c-fn">Path</span>(__file__).<span class="c-fn">resolve</span>().parent / <span class="c-str">"server.py"</span>)
+server_params = <span class="c-fn">StdioServerParameters</span>(command=sys.executable, args=[SERVER_SCRIPT])
+
+<span class="c-kw">async with</span> <span class="c-fn">stdio_client</span>(server_params) <span class="c-kw">as</span> (read, write):
+    <span class="c-kw">async with</span> <span class="c-fn">ClientSession</span>(read, write) <span class="c-kw">as</span> session:
+        <span class="c-kw">await</span> session.<span class="c-fn">initialize</span>()
+
+        <span class="c-comment"># [ 1 ] 서버의 모든 @mcp.tool()을 랭체인 도구로 변환!</span>
+        tools = <span class="c-kw">await</span> <span class="c-fn">load_mcp_tools</span>(session)
+        <span class="c-comment"># [ 2 ] 모델 + MCP 도구 + 단기 메모리(InMemorySaver)로 에이전트 완성!</span>
+        agent = <span class="c-fn">create_agent</span>(model, tools, checkpointer=<span class="c-fn">InMemorySaver</span>())</pre>
+        </div>
+      </section>
+
+      <!-- 3. mcp_multi_agent/server.py -->
+      <section id="sec-9-3" class="section-card">
+        <span class="chapter-tag">파일: CHAP9_MCP/mcp_multi_agent/server.py</span>
+        <h2>3. [실습 2] 로컬 파일 탐색 전용 MCP 서버 (FileSearch)</h2>
+        <p>두 번째 실습에서는 내 컴퓨터의 폴더 목록을 보거나(<code class="inline">file_listup</code>), 파일의 상세 속성·본문을 읽고(<code class="inline">file_info</code>), 요약본을 마크다운 파일로 저장하는(<code class="inline">save_file</code>) 3가지 비동기(<code class="inline">async def</code>) 도구를 담은 MCP 서버를 만듭니다.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>MCP 도구 이름</th>
+                <th>입력 인자</th>
+                <th>하는 일 (역할)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="inline">file_listup</code></td>
+                <td><code class="inline">directory: str</code></td>
+                <td>지정한 폴더 안에 있는 파일/폴더 이름 목록을 리스트로 반환합니다.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">file_info</code></td>
+                <td><code class="inline">path: str</code></td>
+                <td>파일의 크기, 생성/수정 시각, 권한, 그리고 파일 안의 텍스트 본문을 읽어 반환합니다.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">save_file</code></td>
+                <td><code class="inline">content: str, output_path: str</code></td>
+                <td>정리된 텍스트 내용을 지정된 파일(기본값: <code class="inline">file_info.md</code>)로 저장합니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. mcp_multi_agent/client.py -->
+      <section id="sec-9-4" class="section-card">
+        <span class="chapter-tag">파일: CHAP9_MCP/mcp_multi_agent/client.py</span>
+        <h2>4. [실습 2] 멀티 MCP 서버(MultiServerMCPClient)와 슈퍼바이저 아키텍처</h2>
+        <p><code class="inline">MultiServerMCPClient</code>라는 <strong>USB-C 멀티허브</strong>를 사용하면, 원격 인터넷에 있는 <strong>Tavily 웹 검색 MCP 서버(HTTP)</strong>와 내 컴퓨터에 있는 <strong>로컬 파일 MCP 서버(stdio)</strong>를 동시에 연결해 각 전문 에이전트에게 나눠줄 수 있습니다!</p>
+
+        <div class="flow-diagram">
+          <div class="flow-node start-end">사용자 질문</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node cond">🧑‍💼 supervisor (팀장님)<br/><small>Router 도구로 담당자 지목</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">📂 file_searcher<br/><small>(로컬 stdio MCP 도구 사용)</small></div>
+          <div class="flow-node">🌐 web_searcher<br/><small>(원격 Tavily HTTP MCP 도구 사용)</small></div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 MultiServerMCPClient 멀티허브 설정 코드</span>
+            <span class="code-badge">HTTP + stdio 동시 연결</span>
+          </div>
+          <pre>client = <span class="c-fn">MultiServerMCPClient</span>({
+    <span class="c-comment"># [ 1 ] 인터넷 원격 Tavily 웹 검색 MCP 서버 (streamable_http 방식)</span>
+    <span class="c-str">"tavily"</span>: {
+        <span class="c-str">"url"</span>: <span class="c-str">f"https://mcp.tavily.com/mcp/?tavilyApiKey={TAVILY_API_KEY}"</span>,
+        <span class="c-str">"transport"</span>: <span class="c-str">"streamable_http"</span>,
+    },
+    <span class="c-comment"># [ 2 ] 내 컴퓨터 로컬 파일 검색 MCP 서버 (stdio 방식)</span>
+    <span class="c-str">"file"</span>: {
+        <span class="c-str">"transport"</span>: <span class="c-str">"stdio"</span>,
+        <span class="c-str">"command"</span>: sys.executable,
+        <span class="c-str">"args"</span>: [<span class="c-str">"./server.py"</span>],
+    }
+})
+
+<span class="c-comment"># 서버 이름별로 도구를 깔끔하게 분리해서 각 담당 에이전트에게 배분!</span>
+tavily_tools = <span class="c-kw">await</span> client.<span class="c-fn">get_tools</span>(server_name=<span class="c-str">"tavily"</span>)
+file_tools = <span class="c-kw">await</span> client.<span class="c-fn">get_tools</span>(server_name=<span class="c-str">"file"</span>)</pre>
+        </div>
+      </section>
+
+      <!-- 5. 인터랙티브 시뮬레이터 -->
+      <section id="simulator" class="section-card">
+        <span class="chapter-tag">🎮 인터랙티브 실습</span>
+        <h2>직접 체험해보기: MCP Tool / Prompt &amp; 멀티 에이전트 호출 시뮬레이터</h2>
+        <p>사용자의 요청에 따라 MCP 클라이언트가 어떤 <strong>프롬프트(<code class="inline">@mcp.prompt</code>)</strong>와 <strong>도구(<code class="inline">@mcp.tool</code>)</strong>를 호출하는지 시나리오를 선택해 실행 과정을 확인해 보세요!</p>
+
+        <div class="simulator">
+          <div class="sim-title">🔌 MCP 프로토콜 통신 시뮬레이터 (Model: gemini-3.8-flash)</div>
+          <div class="sim-controls">
+            <select id="mcpScenario" class="sim-select" onchange="runMcpSim()">
+              <option value="m1">[실습 1: 개인 비서] 첫 인사 & 내 정보 확인 ("안녕! 내 정보 파일 읽어봐 줄래?")</option>
+              <option value="m2">[실습 1: 일기장 저장] 대화 마무리 ("오늘 대화 내용으로 일기 저장해줘!")</option>
+              <option value="m3">[실습 2: 멀티 에이전트] 로컬 폴더 조회 ("현재 폴더에 어떤 파일들이 있는지 알려줘")</option>
+              <option value="m4">[실습 2: 멀티 에이전트] 최신 웹 검색 + 파일 저장 ("최신 MCP 뉴스를 검색해서 파일로 저장해줘")</option>
+            </select>
+            <button class="sim-btn" onclick="runMcpSim()">⚡ MCP 호출 실행</button>
+          </div>
+          <div id="mcpOutput" class="sim-result"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    function runMcpSim() {
+      const val = document.getElementById('mcpScenario').value;
+      const out = document.getElementById('mcpOutput');
+
+      if (val === 'm1') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="badge-purple">📡 연결 방식: stdio (로컬 server.py)</span>
+            <span class="badge-info">🎯 첫 번째 입력 (is_first_input = True)</span>
+          </div>
+          <p style="margin-bottom:8px;"><strong>1단계 (MCP Prompt 로드):</strong> <code>load_mcp_prompt(session, "default_prompt")</code>가 호출되어 서버에 저장된 '따뜻한 개인 비서 매뉴얼'을 가져옵니다.</p>
+          <p style="margin-bottom:8px;"><strong>2단계 (MCP Tool 호출):</strong> <code>gemini-3.8-flash</code>가 서버의 <code>read_user_info()</code> 도구를 실행합니다.</p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.86rem; margin-bottom:10px;">
+            📥 [MCP Prompt] AssistantMessage("당신은 따뜻하고 공감 능력이 뛰어난 개인 비서입니다...")<br/>
+            🛠️ [MCP Tool Call] read_user_info() &rarr; my_info.txt 읽기 완료!<br/>
+            📄 [Tool Result] "이름: 나연 / 관심사: AI 에이전트 개발, 러닝"
+          </div>
+          <p style="margin-bottom:0; color:#1e293b;"><strong>🤖 에이전트 응답:</strong> "안녕하세요 나연님! AI 에이전트 개발과 러닝에 관심이 많으시군요. 오늘 하루는 어떻게 보내셨나요? 편하게 이야기 들려주세요 😊"</p>
+        `;
+      } else if (val === 'm2') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="badge-purple">📡 연결 방식: stdio (로컬 server.py)</span>
+            <span class="badge-pass">💾 @mcp.tool() save_diary 실행</span>
+          </div>
+          <p style="margin-bottom:8px;"><strong>동작 과정:</strong> <code>InMemorySaver</code>에 쌓인 오늘 대화를 바탕으로 요약·감정·다짐 3가지 인자를 만들어 MCP 서버의 <code>save_diary</code> 도구를 호출합니다.</p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.86rem; margin-bottom:10px;">
+            🛠️ [MCP Tool Call] save_diary(<br/>
+            &nbsp;&nbsp;conversation_summary="MCP 서버와 클라이언트를 직접 연결하며 뿌듯한 하루를 보냄",<br/>
+            &nbsp;&nbsp;emotion="성취감과 즐거움",<br/>
+            &nbsp;&nbsp;resolution="내일은 멀티 에이전트까지 멋지게 완성하기!"<br/>
+            )<br/>
+            ✅ [Tool Result] {"success": True, "filename": "diary_20261102_180000.txt"}
+          </div>
+          <p style="margin-bottom:0; color:#1e293b;"><strong>🤖 에이전트 응답:</strong> "오늘 나눈 소중한 대화를 <code>diary/diary_20261102_180000.txt</code> 파일에 예쁘게 일기로 저장해 두었어요! 오늘도 정말 수고 많으셨습니다 ✨"</p>
+        `;
+      } else if (val === 'm3') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="badge-info">🧑‍💼 Supervisor 라우팅: next = "file_searcher"</span>
+            <span class="badge-purple">📡 사용 서버: "file" (stdio)</span>
+          </div>
+          <p style="margin-bottom:8px;"><strong>동작 과정:</strong> 팀장(<code>supervisor</code>)이 질문을 보고 파일 담당자(<code>file_searcher</code>)를 지목합니다. 파일 담당자는 로컬 MCP 서버의 <code>file_listup(".")</code> 도구를 호출합니다.</p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.86rem; margin-bottom:10px;">
+            🔀 [Supervisor] Router &rarr; goto="file_searcher"<br/>
+            🛠️ [file_searcher &rarr; MCP Tool] file_listup(directory=".")<br/>
+            📂 [Tool Result] ["client.py", "server.py", "file_info.md"]<br/>
+            🔀 [file_searcher] 결과 보고 후 goto="supervisor" &rarr; END
+          </div>
+          <p style="margin-bottom:0; color:#1e293b;"><strong>🤖 슈퍼바이저 최종 응답:</strong> "현재 폴더에는 <code>client.py</code>, <code>server.py</code>, <code>file_info.md</code> 총 3개의 파일이 있습니다."</p>
+        `;
+      } else {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="badge-pass">🌐+📂 하이브리드 협업: web_searcher &rarr; file_searcher</span>
+          </div>
+          <p style="margin-bottom:8px;"><strong>동작 과정:</strong> 슈퍼바이저가 먼저 <strong>원격 Tavily MCP 서버(HTTP)</strong>를 쓰는 <code>web_searcher</code>에게 검색을 시키고, 검색 결과를 받은 뒤 다시 <strong>로컬 파일 MCP 서버(stdio)</strong>를 쓰는 <code>file_searcher</code>에게 파일 저장을 지시합니다!</p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.86rem; margin-bottom:10px;">
+            1️⃣ [Supervisor] Router &rarr; goto="web_searcher"<br/>
+            🌐 [web_searcher &rarr; Tavily HTTP MCP] tavily_search(query="최신 MCP 뉴스")<br/>
+            2️⃣ [Supervisor] 검색 결과 수신 후 Router &rarr; goto="file_searcher"<br/>
+            💾 [file_searcher &rarr; Local stdio MCP] save_file(content="...", output_path="mcp_news.md")<br/>
+            3️⃣ [Supervisor] 모든 작업 완료 확인 &rarr; goto=END
+          </div>
+          <p style="margin-bottom:0; color:#1e293b;"><strong>🤖 슈퍼바이저 최종 응답:</strong> "최신 MCP 관련 소식을 웹에서 검색하여 요약한 뒤, <code>mcp_news.md</code> 파일로 성공적으로 저장했습니다!"</p>
+        `;
+      }
+    }
+    runMcpSim();
+  </script>
+</body>
+</html>

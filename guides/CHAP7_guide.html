@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHAPTER 7. 멀티 에이전트(Multi-Agent) 아키텍처 완벽 가이드 | 비전공자 맞춤형 교재</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --primary: #4f46e5;
+      --primary-soft: #eef2ff;
+      --secondary: #0ea5e9;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --code-bg: #1e293b;
+      --code-text: #f8fafc;
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* 상단 히어로 배너 */
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #0369a1 100%);
+      color: #ffffff;
+      padding: 64px 24px 56px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 0 auto;
+      font-size: 1.08rem;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    /* 레이아웃 */
+    .layout {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static !important;
+      }
+    }
+
+    /* 사이드바 네비게이션 */
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      padding: 0 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-list a {
+      display: block;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.93rem;
+      font-weight: 500;
+      padding: 9px 12px;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-list a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* 본문 섹션 카드 */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 640px) {
+      .section-card {
+        padding: 24px 18px;
+      }
+    }
+
+    .chapter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 5px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .section-card h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .section-card h3 {
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-card p {
+      color: #334155;
+      margin-bottom: 14px;
+    }
+
+    /* 비유 박스 & 팁 박스 */
+    .analogy-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin: 18px 0;
+    }
+
+    .analogy-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+    }
+
+    .tip-box {
+      background: #ecfdf5;
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .tip-title {
+      font-weight: 700;
+      color: #047857;
+      margin-bottom: 6px;
+    }
+
+    .warn-box {
+      background: #fffbeb;
+      border-left: 4px solid var(--warning);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .warn-title {
+      font-weight: 700;
+      color: #b45309;
+      margin-bottom: 6px;
+    }
+
+    /* 개념 그리드 */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .concept-item {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .concept-icon {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .concept-item h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .concept-item p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    /* 코드 블록 & 줄별 해설 */
+    .code-container {
+      margin: 20px 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .code-header {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-badge {
+      background: rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .c-comment { color: #94a3b8; font-style: italic; }
+    .c-kw { color: #c084fc; font-weight: 600; }
+    .c-str { color: #86efac; }
+    .c-fn { color: #60a5fa; }
+    .c-num { color: #fbbf24; }
+
+    /* 표 스타일 */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-alt);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* 다이어그램 흐름도 */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--surface-alt);
+      padding: 24px;
+      border-radius: 14px;
+      margin: 20px 0;
+      border: 1px dashed #cbd5e1;
+    }
+
+    .flow-node {
+      background: var(--surface);
+      border: 2px solid var(--primary);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .flow-node.start-end {
+      background: var(--primary);
+      color: white;
+      border-radius: 999px;
+    }
+
+    .flow-node.cond {
+      border-color: var(--warning);
+      background: #fffbeb;
+    }
+
+    .flow-node.worker {
+      border-color: var(--secondary);
+      background: #f0f9ff;
+    }
+
+    .flow-arrow {
+      font-weight: 800;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+    }
+
+    /* 인터랙티브 시뮬레이터 */
+    .simulator {
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      border: 2px solid #c7d2fe;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .sim-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+
+    .sim-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.92rem;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+
+    .sim-btn:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+    }
+
+    .sim-btn.secondary {
+      background: #0284c7;
+    }
+
+    .sim-btn.accent {
+      background: #059669;
+    }
+
+    .sim-btn.outline {
+      background: white;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .sim-stage {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .sim-agent-box {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      transition: all 0.25s ease;
+    }
+
+    .sim-agent-box.active {
+      border-color: var(--primary);
+      background: #eef2ff;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .sim-output {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 18px;
+      border-radius: 12px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      min-height: 150px;
+      white-space: pre-wrap;
+      line-height: 1.65;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 히어로 배너 -->
+  <header class="hero">
+    <div class="hero-badge">CHAPTER 7 · 멀티 에이전트 아키텍처 마스터 과정</div>
+    <h1>혼자보다 강한 AI 어벤져스 팀 만들기:<br/>멀티 에이전트(Multi-Agent) 완벽 가이드</h1>
+    <p>
+      한 명의 에이전트에게 수십 개의 도구를 전부 쥐여주면 혼란에 빠집니다.<br/>
+      <strong>바통 터치(Command)</strong>, <strong>네트워크 자율 협업</strong>, <strong>팀장님(Supervisor) 지휘</strong>, 그리고 <strong>수석 기획자(Planning)</strong>까지!<br/>
+      Gemini 3.8 Flash(`gemini-3.8-flash`) 기반으로 실전 멀티 에이전트 조직도를 쉽게 정복해 보세요.
+    </p>
+  </header>
+
+  <div class="layout">
+    <!-- 좌측 고정 목차 사이드바 -->
+    <aside class="sidebar">
+      <div class="sidebar-title">목차 (Table of Contents)</div>
+      <ul class="nav-list">
+        <li><a href="#intro">🌟 왜 멀티 에이전트인가요?</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="#sec-7-2">7.2 Command와 핸드오프 기초</a></li>
+        <li><a href="#sec-7-3">7.3 네트워크(Network) 아키텍처</a></li>
+        <li><a href="#sec-7-4">7.4 슈퍼바이저 패턴 기초 (Web+DB)</a></li>
+        <li><a href="#sec-7-5">7.5 핸드오프 도구 기반 3중 슈퍼바이저</a></li>
+        <li><a href="#sec-7-6">7.6 기획(Planning) 기반 슈퍼바이저</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="#simulator">🎮 멀티 에이전트 라우팅 시뮬레이터</a></li>
+        <li><a href="#summary">📋 아키텍처 한눈에 비교하기</a></li>
+      </ul>
+    </aside>
+
+    <!-- 우측 본문 영역 -->
+    <main class="content">
+
+      <!-- 인트로: 왜 멀티 에이전트인가? -->
+      <section id="intro" class="section-card">
+        <span class="chapter-tag">INTRO · 핵심 개념 잡기</span>
+        <h2>🌟 왜 에이전트 여러 명을 팀으로 묶어야 할까요?</h2>
+        <p>
+          지금까지는 하나의 에이전트가 검색도 하고, 요약도 하고, 파일도 저장하는 <strong>'1인 만능 식당'</strong> 방식을 사용했습니다. 하지만 메뉴가 늘어나고 손님이 많아지면 요리사 한 명이 주문 접수, 재료 손질, 조리, 서빙, 회계까지 다 하다가 실수를 연발하게 됩니다.
+        </p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 비전공자를 위한 일상 비유: "1인 동네 분식집 vs 전문 부서가 나뉜 종합 병원"</div>
+          <p style="margin-bottom:0;">
+            종합 병원에 가면 <strong>접수 창구(Supervisor)</strong>에서 증상을 듣고, 엑스레이는 <strong>영상의학과(Research Agent)</strong>로, 혈액 검사는 <strong>진단검사의학과(DB Agent)</strong>로, 처방전 작성은 <strong>담당 전문의(Canvas Agent)</strong>에게 차례로 연결해 줍니다.<br/>
+            각 에이전트에게 <strong>딱 자기 전공 분야의 프롬프트와 도구 1~3개만 전담</strong>시키면 정확도가 비약적으로 높아지고 유지보수도 훨씬 쉬워집니다!
+          </p>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-item">
+            <div class="concept-icon">🏃‍♂️</div>
+            <h4>핸드오프 (Handoff)</h4>
+            <p>이어달리기 주자가 다음 주자에게 <strong>기록지(State 업데이트)</strong>와 함께 <strong>바통(제어권 이동, goto)</strong>을 넘기는 동작입니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">🕸️</div>
+            <h4>네트워크 (Network)</h4>
+            <p>별도의 팀장 없이 동료 에이전트끼리 서로의 이름을 부르며 자율적으로 공을 패스하는 수평적 협업 구조입니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">👩‍💼</div>
+            <h4>슈퍼바이저 (Supervisor)</h4>
+            <p>중앙의 '팀장님' 에이전트가 모든 팀원의 업무를 배분하고, 보고를 받아 최종 답변을 정리하는 중앙 집중형 구조입니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">📋</div>
+            <h4>플래닝 (Planning)</h4>
+            <p>실무에 들어가기 전 '수석 기획자'가 1~5단계 체크리스트를 먼저 세우고, 매 단계가 끝날 때마다 계획을 점검/수정합니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7.2 Command와 핸드오프 기초 -->
+      <section id="sec-7-2" class="section-card">
+        <span class="chapter-tag">SECTION 7.2 · how_to_use_command.ipynb</span>
+        <h2>7.2 핸드오프의 핵심 엔진: <code>Command</code> 객체 마스터하기</h2>
+        <p>
+          기존 LangGraph에서는 노드가 <strong>상태(State)만 업데이트</strong>하고, 다음 노드로 가는 길은 그래프 바깥의 <code>add_edge</code>나 <code>add_conditional_edges</code>로 따로 그려야 했습니다.<br/>
+          하지만 <code>Command</code> 객체를 사용하면 <strong>"상태 업데이트(<code>update</code>) + 다음 이동할 노드 지정(<code>goto</code>)"을 노드 함수 안에서 한 번에 처리</strong>할 수 있습니다!
+        </p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 비유로 이해하기: "결재 서류 작성(update)과 다음 수신자 지정(goto)을 한 봉투에!"</div>
+          <p style="margin-bottom:0;">
+            예전에는 직원이 서류만 작성해서 책상에 올려두면, 복도 안내원이 서류를 보고 다음 부서로 날랐습니다(<code>add_conditional_edges</code>).<br/>
+            이제는 직원이 <code>Command(update={...}, goto="agent_2")</code>라고 서류 봉투 겉면에 <strong>"내 의견 적었으니 바로 2번 대리에게 전달해 주세요!"</strong>라고 직접 적어 보내는 것과 같습니다.
+          </p>
+        </div>
+
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START</div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-node">agent_1<br/><small>foo == "bar" 확인</small></div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-node cond">Command 분기<br/><small>update + goto 동시 실행</small></div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-node worker">agent_2 또는 agent_3</div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-node start-end">END</div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>CHAP7_multi-agent/how_to_use_command.ipynb</span>
+            <span class="code-badge">Command 기본 & 조건 분기</span>
+          </div>
+          <pre><code><span class="c-kw">from</span> typing <span class="c-kw">import</span> Literal
+<span class="c-kw">from</span> langgraph.types <span class="c-kw">import</span> Command
+<span class="c-kw">from</span> langgraph.graph <span class="c-kw">import</span> StateGraph, MessagesState, START, END
+<span class="c-kw">from</span> langchain_core.messages <span class="c-kw">import</span> AIMessage
+
+<span class="c-comment"># [ 1 ] 대화 기록(messages)에 조건 분기용 변수 'foo'를 추가한 상태 정의</span>
+<span class="c-kw">class</span> <span class="c-fn">State</span>(MessagesState):
+    foo: str
+
+<span class="c-comment"># [ 2 ] 반환 타입 힌트 Command[Literal["agent_2", "agent_3"]]로 이동 가능한 후보 노드를 명시!</span>
+<span class="c-kw">def</span> <span class="c-fn">agent_1</span>(state: State) -&gt; Command[Literal[<span class="c-str">"agent_2"</span>, <span class="c-str">"agent_3"</span>]]:
+    messages = AIMessage(content=<span class="c-str">"1번 에이전트 메시지입니다."</span>)
+    <span class="c-kw">if</span> state[<span class="c-str">"foo"</span>] == <span class="c-str">"bar"</span>:
+        <span class="c-kw">return</span> Command(
+            goto=<span class="c-str">"agent_3"</span>,                                  <span class="c-comment"># 3번 에이전트로 바통 터치!</span>
+            update={<span class="c-str">"messages"</span>: [messages], <span class="c-str">"foo"</span>: <span class="c-str">"baz"</span>}  <span class="c-comment"># 메시지와 foo 값을 동시에 업데이트!</span>
+        )
+    <span class="c-kw">return</span> Command(
+        goto=<span class="c-str">"agent_2"</span>,
+        update={<span class="c-str">"messages"</span>: [messages]}
+    )</code></pre>
+        </div>
+
+        <div class="tip-box">
+          <div class="tip-title">✅ 핵심 포인트: 왜 타입 힌트 <code>Command[Literal[...]]</code>를 꼭 써야 하나요?</div>
+          <p style="margin-bottom:0;">
+            <code>add_edge</code>를 생략하더라도 LangGraph가 그래프 그림(시각화)을 그리고 유효성을 검사할 때 <strong>"이 노드에서 어디로 점프할 수 있는지"</strong> 함수의 반환 타입 힌트(<code>Literal["agent_2", "agent_3"]</code>)를 보고 파악하기 때문입니다.
+          </p>
+        </div>
+      </section>
+
+      <!-- 7.3 네트워크(Network) 멀티 에이전트 -->
+      <section id="sec-7-3" class="section-card">
+        <span class="chapter-tag">SECTION 7.3 · network_agent/</span>
+        <h2>7.3 네트워크(Network) 멀티 에이전트: 리서처 ↔ 차트 디자이너 자율 협업</h2>
+        <p>
+          첫 번째 실전 패턴은 <strong>네트워크(Network) 아키텍처</strong>입니다. 중앙 관리자 없이 <strong>웹 자료 조사 에이전트(<code>researcher</code>)</strong>와 <strong>HTML 차트 시각화 에이전트(<code>html_generator</code>)</strong>가 서로의 작업 결과를 보고 직접 바통을 주고받습니다.
+        </p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 일상 비유: "취재 기자와 인포그래픽 디자이너의 복식 탁구"</div>
+          <p style="margin-bottom:0;">
+            1. <strong>취재 기자(<code>research_agent.py</code>)</strong>가 인터넷(Tavily)에서 최신 통계 데이터를 조사합니다.<br/>
+            2. 만약 차트 생성이 필요 없는 단순 질문이면 <code>"최종 답변"</code>이라는 말을 붙여 바로 끝내고(<code>END</code>), 차트가 필요하면 <strong>디자이너(<code>html_generator</code>)</strong>에게 데이터를 넘깁니다.<br/>
+            3. <strong>디자이너(<code>chart_agent.py</code>)</strong>는 데이터를 받아 HTML/JS 차트 파일을 생성·저장한 뒤 <code>"최종 답변"</code>을 외치며 업무를 종료합니다.
+          </p>
+        </div>
+
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START</div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-node worker">🔍 researcher<br/><small>TavilySearch 웹 조사</small></div>
+          <div class="flow-arrow">⇄</div>
+          <div class="flow-node worker">📊 html_generator<br/><small>HTML/JS 차트 파일 생성</small></div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-node start-end">END ("최종 답변" 포함 시)</div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>CHAP7_multi-agent/network_agent/research_agent.py</span>
+            <span class="code-badge">Gemini 3.8 Flash 기반 네트워크 노드</span>
+          </div>
+          <pre><code><span class="c-kw">def</span> <span class="c-fn">research_node</span>(state: MessagesState) -&gt; Command[Literal[<span class="c-str">"html_generator"</span>, END]]:
+    <span class="c-comment"># [ 1 ] 웹 검색 에이전트 실행 (Gemini 3.8 Flash + TavilySearch)</span>
+    result = research_agent.invoke(state)
+
+    <span class="c-comment"># [ 2 ] 상대방 에이전트가 누가 보낸 메시지인지 알 수 있도록 name="researcher" 부여</span>
+    result[<span class="c-str">"messages"</span>][-<span class="c-num">1</span>] = HumanMessage(
+        content=result[<span class="c-str">"messages"</span>][-<span class="c-num">1</span>].content, name=<span class="c-str">"researcher"</span>
+    )
+
+    <span class="c-comment"># [ 3 ] '최종 답변' 키워드 유무에 따라 종료(END) 또는 디자이너(html_generator)로 이동</span>
+    last_message = result[<span class="c-str">"messages"</span>][-<span class="c-num">1</span>]
+    <span class="c-kw">if</span> <span class="c-str">"최종 답변"</span> <span class="c-kw">in</span> last_message.content:
+        goto = END
+    <span class="c-kw">else</span>:
+        goto = <span class="c-str">"html_generator"</span>
+
+    <span class="c-kw">return</span> Command(update={<span class="c-str">"messages"</span>: result[<span class="c-str">"messages"</span>]}, goto=goto)</code></pre>
+        </div>
+      </section>
+
+      <!-- 7.4 슈퍼바이저 패턴 기초 -->
+      <section id="sec-7-4" class="section-card">
+        <span class="chapter-tag">SECTION 7.4 · supervisor_agent_web/</span>
+        <h2>7.4 슈퍼바이저(Supervisor) 패턴 기초: 웹 분석 + Supabase DB 관리</h2>
+        <p>
+          에이전트가 3명 이상으로 늘어나면 에이전트끼리 직접 바통을 넘기는 네트워크 방식은 동선이 너무 복잡해집니다. 이때 등장하는 해결사가 바로 <strong>중앙의 팀장님, 슈퍼바이저(Supervisor) 패턴</strong>입니다!
+        </p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 일상 비유: "팀장님(Supervisor)과 두 명의 실무자(웹 크롤러 & DB 사서)"</div>
+          <p style="margin-bottom:0;">
+            실무자끼리는 직접 대화하지 않고 <strong>무조건 팀장님(<code>supervisor</code>)에게만 보고</strong>합니다.<br/>
+            • 사용자가 <em>"이 뉴스 URL 내용을 분석해서 DB에 저장해줘"</em>라고 요청하면:<br/>
+            1️⃣ 팀장님이 먼저 <strong><code>web_agent</code></strong>를 호출해 웹 본문 정제 + 확장 질문을 뽑아오게 합니다.<br/>
+            2️⃣ 보고를 받은 팀장님이 이어서 <strong><code>database_agent</code></strong>를 호출해 Supabase <code>web_content</code> 테이블에 저장시킵니다.<br/>
+            3️⃣ 모든 작업이 끝나면 팀장님이 직접 친절한 최종 보고서를 작성해 사용자에게 전달합니다!
+          </p>
+        </div>
+
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START</div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-node cond">👩‍💼 supervisor<br/><small>Router 도구로 다음 담당자 지목</small></div>
+          <div class="flow-arrow">⇄</div>
+          <div class="flow-node worker">🌐 web_agent (서브그래프)<br/><small>URL 크롤링 → 정제 → 확장질문 생성</small></div>
+          <div class="flow-arrow">&amp;</div>
+          <div class="flow-node worker">🗄️ database_agent<br/><small>Supabase 저장 / FTS 키워드 검색</small></div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>CHAP7_multi-agent/supervisor_agent_web/supervisor_agent.py</span>
+            <span class="code-badge">Router TypedDict 도구 바인딩</span>
+          </div>
+          <pre><code><span class="c-kw">class</span> <span class="c-fn">Router</span>(TypedDict):
+    <span class="c-str">"""다음으로 라우팅 할 작업자"""</span>
+    next: Literal[<span class="c-str">"web_agent"</span>, <span class="c-str">"database_agent"</span>]
+
+<span class="c-kw">def</span> <span class="c-fn">supervisor_node</span>(state: State) -&gt; Command[Literal[<span class="c-str">"web_agent"</span>, <span class="c-str">"database_agent"</span>, END]]:
+    messages = [
+        {<span class="c-str">"role"</span>: <span class="c-str">"system"</span>, <span class="c-str">"content"</span>: get_system_prompt([<span class="c-str">"web_agent"</span>, <span class="c-str">"database_agent"</span>])},
+    ] + state[<span class="c-str">"messages"</span>]
+
+    <span class="c-comment"># Gemini 3.8 Flash 모델에 Router 도구를 쥐여주어 다음 행동을 결정하게 함</span>
+    response = llm.bind_tools([Router]).invoke(messages)
+
+    <span class="c-comment"># [ 3 ] Router 도구를 호출했다면 -> 지목된 팀원(web_agent 또는 database_agent)에게 출동 명령!</span>
+    <span class="c-kw">if</span> hasattr(response, <span class="c-str">"tool_calls"</span>) <span class="c-kw">and</span> len(response.tool_calls) &gt; <span class="c-num">0</span>:
+        goto = response.tool_calls[<span class="c-num">0</span>][<span class="c-str">"args"</span>][<span class="c-str">"next"</span>]
+        <span class="c-kw">return</span> Command(goto=goto, update={<span class="c-str">"next"</span>: goto})
+
+    <span class="c-comment"># [ 4 ] 도구 호출 없이 바로 답변을 생성했다면 -> 모든 업무 완료! END로 이동</span>
+    <span class="c-kw">else</span>:
+        final_message = AIMessage(content=response.content, name=<span class="c-str">"supervisor"</span>)
+        <span class="c-kw">return</span> Command(goto=END, update={<span class="c-str">"messages"</span>: [final_message]})</code></pre>
+        </div>
+      </section>
+
+      <!-- 7.5 핸드오프 도구(Handoff Tools) 기반 3중 슈퍼바이저 -->
+      <section id="sec-7-5" class="section-card">
+        <span class="chapter-tag">SECTION 7.5 · supervisor_agent_triple/</span>
+        <h2>7.5 핸드오프 도구(Handoff Tools) &amp; 병렬 <code>Send</code>: 3중 슈퍼바이저</h2>
+        <p>
+          7.4절에서는 슈퍼바이저가 단순히 <em>"다음은 누구 차례!"</em>만 지목했지만, 실무에서는 <strong>"웹 검색팀에게는 A를 조사하라고 시키고, 동시에 FAQ팀에게는 휴가 규정을 물어봐야 하는 복합 질문"</strong>이 자주 들어옵니다.<br/>
+          7.5절에서는 <strong>핸드오프 전용 도구(<code>transfer_to_...</code>)</strong>와 LangGraph의 <strong><code>Send</code> API</strong>를 결합해 <strong>여러 에이전트에게 맞춤형 쿼리(<code>query</code>)를 동시에 병렬 배정</strong>하는 고급 기법을 구현합니다.
+        </p>
+
+        <div class="concept-grid">
+          <div class="concept-item">
+            <div class="concept-icon">🌍</div>
+            <h4>1. Web Search Agent</h4>
+            <p><code>TavilySearch</code>로 사내에 없는 외부 최신 정보나 뉴스를 검색합니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">📚</div>
+            <h4>2. DB Search Agent</h4>
+            <p><code>Chroma</code> 벡터 DB에 저장된 사내 PDF/Word 문서를 목록 조회하고 검색합니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">🏢</div>
+            <h4>3. FAQ Agent</h4>
+            <p>사내 휴가 정책, 근무 시간, 복리후생, 부서별 연락처 4가지 전용 도구를 조회합니다.</p>
+          </div>
+        </div>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 핵심 무기 2가지: <code>ToolRuntime</code>과 <code>Send</code> 병렬 호출</div>
+          <p style="margin-bottom:0;">
+            • <strong>단일 부서 지시 (<code>len(tool_calls) == 1</code>)</strong>: 일반 <code>Command(goto=agent_name, graph=Command.PARENT)</code>로 해당 부서 한 곳에만 이동합니다.<br/>
+            • <strong>복수 부서 동시 지시 (<code>len(tool_calls) &gt; 1</code>)</strong>: 예를 들어 <em>"최신 AI 트렌드도 검색해주고 우리 회사 휴가 규정도 알려줘"</em>라고 물으면, 슈퍼바이저가 <code>transfer_to_web_search</code>와 <code>transfer_to_faq</code> 두 도구를 한꺼번에 호출합니다. 이때 <code>Send(target_agent, {..., "query": query_content})</code> 리스트를 <code>Command(goto=send_list)</code>에 담아 <strong>두 부서가 동시에 일하게 만듭니다!</strong>
+          </p>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>CHAP7_multi-agent/supervisor_agent_triple/handoff_tools.py</span>
+            <span class="code-badge">단일 Handoff vs 다중 병렬 Send 처리</span>
+          </div>
+          <pre><code><span class="c-kw">@tool</span>(tool_name, description=description)
+<span class="c-kw">def</span> <span class="c-fn">handoff_to_agent</span>(query: str, runtime: ToolRuntime) -&gt; Command:
+    state = runtime.state
+    last_ai_message = cast(AIMessage, state[<span class="c-str">"messages"</span>][-<span class="c-num">1</span>])
+
+    <span class="c-comment"># [복수 도구 호출] 2개 이상의 에이전트에게 동시에 업무를 배정할 때 -> Send 리스트로 병렬 출동!</span>
+    <span class="c-kw">if</span> len(last_ai_message.tool_calls) &gt; <span class="c-num">1</span>:
+        send_list = []
+        <span class="c-kw">for</span> tool_call <span class="c-kw">in</span> last_ai_message.tool_calls:
+            <span class="c-kw">if</span> tool_call[<span class="c-str">"name"</span>].startswith(<span class="c-str">"transfer_to_"</span>):
+                target_agent = tool_call[<span class="c-str">"name"</span>].replace(<span class="c-str">"transfer_to_"</span>, <span class="c-str">""</span>)
+                query_content = tool_call[<span class="c-str">'args'</span>].get(<span class="c-str">'query'</span>, <span class="c-str">''</span>)
+                <span class="c-comment"># 각 에이전트에게 맞춤형 query를 담아 Send 객체 생성</span>
+                send_list.append(Send(target_agent, {**state, <span class="c-str">"messages"</span>: agent_messages, <span class="c-str">"query"</span>: query_content}))
+        <span class="c-kw">return</span> Command(graph=Command.PARENT, goto=send_list)
+
+    <span class="c-comment"># [단일 도구 호출] 1개 에이전트에게만 업무를 배정할 때 -> 즉시 해당 노드로 이동!</span>
+    <span class="c-kw">else</span>:
+        <span class="c-kw">return</span> Command(
+            goto=agent_name,
+            graph=Command.PARENT,
+            update={**state, <span class="c-str">"messages"</span>: handoff_messages, <span class="c-str">"query"</span>: query}
+        )</code></pre>
+        </div>
+      </section>
+
+      <!-- 7.6 기획(Planning) 기반 슈퍼바이저 -->
+      <section id="sec-7-6" class="section-card">
+        <span class="chapter-tag">SECTION 7.6 · supervisor_planning_agent/</span>
+        <h2>7.6 기획(Planning) 기반 슈퍼바이저: Plan-and-Execute + 마크다운 보고서 작성</h2>
+        <p>
+          챕터 7의 대미를 장식하는 가장 정교한 아키텍처입니다. 복잡한 리서치 보고서 작성 요청이 들어왔을 때 무작정 검색부터 시작하지 않고, <strong>수석 기획자(<code>planning</code>)가 전체 단계별 계획(<code>plan</code>)을 먼저 수립</strong>합니다.
+        </p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 일상 비유: "수석 기획자(Planner) + 현장 매니저(Supervisor) + 리서처 &amp; 전문 작가"</div>
+          <p style="margin-bottom:0;">
+            1. <strong>수석 기획자 (<code>planning_node</code>)</strong>: 사용자의 요청을 보고 2~5단계의 체크리스트(<code>plan</code>)를 만듭니다. (예: 1단계 자료조사 → 2단계 목차 및 보고서 작성/저장)<br/>
+            2. <strong>현장 매니저 (<code>supervisor_node</code>)</strong>: 전체 계획을 다 신경 쓰지 않고, 오직 <strong>현재 첫 번째 할 일(<code>plan[0]</code>)</strong>만 딱 집어서 <code>research</code> 또는 <code>canvas</code>에게 지시합니다.<br/>
+            3. <strong>실무 에이전트 (<code>research</code> / <code>canvas</code>)</strong>: 리서처는 웹 조사를 수행하고, 작가(Canvas)는 목차 생성 → 마크다운 집필 → <code>outputs/*.md</code> 파일 저장까지 마친 뒤 매니저에게 보고합니다.<br/>
+            4. <strong>계획 재검토 (Replanning)</strong>: 매니저가 완료된 일을 <code>past_steps</code>에 적고 기획자에게 돌려보내면, 기획자가 남은 계획을 업데이트하거나 모든 목표 달성 시 최종 답변을 내고 종료(<code>END</code>)합니다!
+          </p>
+        </div>
+
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START</div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-node cond">🧠 planning<br/><small>초기 계획 수립 &amp; Replan</small></div>
+          <div class="flow-arrow">⇄</div>
+          <div class="flow-node">👩‍💼 supervisor<br/><small>오직 plan[0] 작업만 전담 관리</small></div>
+          <div class="flow-arrow">⇄</div>
+          <div class="flow-node worker">🔍 research (웹 조사)<br/>✍️ canvas (목차·집필·.md 저장)</div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>CHAP7_multi-agent/supervisor_planning_agent/planning_agent.py &amp; canvas_agent.py</span>
+            <span class="code-badge">Structured Output 기획 &amp; 3단계 마크다운 작가</span>
+          </div>
+          <pre><code><span class="c-comment"># 1. planning_agent.py: 계획(Plan)과 즉시 응답(ConversationalResponse)을 Union으로 분기</span>
+<span class="c-kw">class</span> <span class="c-fn">Plan</span>(BaseModel):
+    steps: List[str] = Field(description=<span class="c-str">"따라야 할 단계들, 정렬된 순서여야 함"</span>)
+
+<span class="c-kw">class</span> <span class="c-fn">ConversationalResponse</span>(BaseModel):
+    response: str = Field(description=<span class="c-str">"사용자의 질문에 대한 대화형 응답"</span>)
+
+<span class="c-kw">class</span> <span class="c-fn">PlanningResponse</span>(BaseModel):
+    final_output: Union[Plan, ConversationalResponse]
+
+<span class="c-comment"># 2. canvas_agent.py: 조사 결과를 받아 마크다운 보고서를 완성하는 3종 도구 세트</span>
+agent = create_agent(
+    get_model(<span class="c-str">"gemini-3.8-flash"</span>),
+    [
+        create_outline_from_research, <span class="c-comment"># ① 조사 결과 기반 체계적인 목차(1, 1.1...) 설계</span>
+        write_content_from_research,  <span class="c-comment"># ② 출처 URL 링크가 포함된 마크다운 본문 집필</span>
+        save_to_file,                 <span class="c-comment"># ③ outputs/ 폴더에 프론트매터와 함께 .md 파일 저장</span>
+    ],
+    system_prompt=<span class="c-str">"""당신은 조사 결과를 바탕으로 Markdown 형식의 문서를 작성하고 수정하는 전문 작가입니다..."""</span>
+)</code></pre>
+        </div>
+      </section>
+
+      <!-- 인터랙티브 멀티 에이전트 라우팅 시뮬레이터 -->
+      <section id="simulator" class="section-card">
+        <span class="chapter-tag">INTERACTIVE LAB · 직접 클릭하며 체험하기</span>
+        <h2>🎮 멀티 에이전트 라우팅 &amp; 핸드오프 시뮬레이터</h2>
+        <p>
+          시나리오 버튼을 클릭해 보세요! 사용자의 질문에 따라 <strong>어떤 아키텍처에서 누가 누구에게 바통(<code>Command</code> / <code>Send</code>)을 넘기는지</strong> 실시간 로그와 불빛으로 확인할 수 있습니다.
+        </p>
+
+        <div class="simulator">
+          <div class="sim-controls">
+            <button class="sim-btn" onclick="runSim('network')">🕸️ 시나리오 1: 네트워크 (웹 조사 → HTML 차트)</button>
+            <button class="sim-btn secondary" onclick="runSim('triple')">⚡ 시나리오 2: 3중 슈퍼바이저 (병렬 Send 호출)</button>
+            <button class="sim-btn accent" onclick="runSim('planning')">📋 시나리오 3: 기획형 슈퍼바이저 (Plan → Research → Canvas)</button>
+          </div>
+
+          <div class="sim-stage" id="sim-stage">
+            <div class="sim-agent-box" id="box-planner">🧠 <strong>Planner</strong><br/><small>계획 수립/재검토</small></div>
+            <div class="sim-agent-box" id="box-supervisor">👩‍💼 <strong>Supervisor</strong><br/><small>라우팅/병렬 지휘</small></div>
+            <div class="sim-agent-box" id="box-research">🔍 <strong>Research / Web</strong><br/><small>웹 검색·크롤링</small></div>
+            <div class="sim-agent-box" id="box-db">🗄️ <strong>DB / FAQ</strong><br/><small>문서·사내규정 조회</small></div>
+            <div class="sim-agent-box" id="box-canvas">✍️ <strong>Canvas / Chart</strong><br/><small>.html / .md 파일 생성</small></div>
+          </div>
+
+          <div class="sim-output" id="sim-log">👆 위의 시나리오 버튼 중 하나를 클릭하면 멀티 에이전트 협업 과정이 단계별로 재생됩니다!</div>
+        </div>
+      </section>
+
+      <!-- 아키텍처 한눈에 비교하기 -->
+      <section id="summary" class="section-card">
+        <span class="chapter-tag">SUMMARY · 한눈에 비교하는 핵심 정리</span>
+        <h2>📋 CHAPTER 7 멀티 에이전트 4대 패턴 총정리</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>폴더 / 파일명</th>
+                <th>핵심 라우팅 기법</th>
+                <th>일상 비유</th>
+                <th>추천 활용 상황</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>7.2 Command 기초</strong></td>
+                <td><code>how_to_use_command.ipynb</code></td>
+                <td><code>Command(goto=..., update=...)</code></td>
+                <td>서류 작성과 다음 수신자 지정을 한 봉투에 처리</td>
+                <td>조건부 엣지 코드를 줄이고 노드 내부에서 직관적으로 분기할 때</td>
+              </tr>
+              <tr>
+                <td><strong>7.3 네트워크 패턴</strong></td>
+                <td><code>network_agent/</code></td>
+                <td>동료 간 직접 <code>Command(goto=상대방)</code></td>
+                <td>취재 기자와 디자이너의 1:1 복식 탁구</td>
+                <td>2~3명의 소수 에이전트가 순차/자율적으로 협업할 때</td>
+              </tr>
+              <tr>
+                <td><strong>7.4 기본 슈퍼바이저</strong></td>
+                <td><code>supervisor_agent_web/</code></td>
+                <td><code>llm.bind_tools([Router])</code></td>
+                <td>팀장님이 웹 분석가와 DB 사서를 차례로 지휘</td>
+                <td>웹 크롤링 후 DB 저장처럼 중앙 통제가 필요한 업무</td>
+              </tr>
+              <tr>
+                <td><strong>7.5 3중 슈퍼바이저</strong></td>
+                <td><code>supervisor_agent_triple/</code></td>
+                <td><code>create_handoff_tool</code> + 병렬 <code>Send</code></td>
+                <td>본부장이 3개 부서에 내선 전화로 동시 업무 지시</td>
+                <td>외부 검색, 사내 문서 DB, 인사 FAQ 등 복수 도메인 동시 질의응답</td>
+              </tr>
+              <tr>
+                <td><strong>7.6 기획형 슈퍼바이저</strong></td>
+                <td><code>supervisor_planning_agent/</code></td>
+                <td><code>Plan</code> 수립 → <code>plan[0]</code> 실행 → <code>Replan</code></td>
+                <td>수석 기획자 + 현장 매니저 + 리서처 &amp; 작가</td>
+                <td>장문 기술 보고서 작성, 다단계 심층 리서치 및 파일 생성 프로젝트</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>
+    <p>한빛미디어 AI 에이전트 실전 가이드 · CHAPTER 7 멀티 에이전트 아키텍처 (Powered by <code>gemini-3.8-flash</code>)</p>
+  </footer>
+
+  <script>
+    const scenarios = {
+      network: {
+        boxes: ['box-research', 'box-canvas'],
+        logs: [
+          "👤 [사용자 요청] '2026년 글로벌 AI 시장 규모를 조사해서 보기 좋은 HTML 차트 파일로 만들어줘.'",
+          "--------------------------------------------------------------------------------",
+          "1️⃣ [START ➔ researcher] 취재 기자(research_node)가 TavilySearch로 AI 시장 규모 데이터를 검색합니다.",
+          "   └─ 검색 완료! 아직 차트 파일이 생성되지 않았으므로 '최종 답변'을 붙이지 않고 바통을 넘깁니다.",
+          "   └─ 반환: Command(update={'messages': [...]}, goto='html_generator')",
+          "2️⃣ [researcher ➔ html_generator] 디자이너(html_node)가 조사 데이터를 받아 html_generator_tool을 호출합니다.",
+          "   └─ 'ai_market_report.html' 파일 저장 완료! 응답에 '최종 답변' 키워드를 포함합니다.",
+          "   └─ 반환: Command(update={'messages': [...]}, goto=END)",
+          "✅ [END] 네트워크 멀티 에이전트 협업이 성공적으로 완료되었습니다!"
+        ]
+      },
+      triple: {
+        boxes: ['box-supervisor', 'box-research', 'box-db'],
+        logs: [
+          "👤 [사용자 요청] '최신 생성형 AI 뉴스도 찾아주고, 우리 회사 연차 휴가 신청 규정도 같이 알려줘!'",
+          "--------------------------------------------------------------------------------",
+          "1️⃣ [START ➔ supervisor] 본부장(supervisor)이 질문을 분석합니다. (외부 웹 검색 + 사내 FAQ 동시 필요!)",
+          "   └─ LLM이 2개의 핸드오프 도구를 동시에 호출: transfer_to_web_search & transfer_to_faq",
+          "2️⃣ [handoff_tools.py] len(tool_calls) > 1 감지! Send() 리스트를 생성해 병렬 라우팅을 실행합니다.",
+          "   └─ Command(graph=Command.PARENT, goto=[Send('web_search', ...), Send('faq', ...)])",
+          "3️⃣ [병렬 실행] 🔍 web_search 에이전트(Tavily 검색)와 🏢 faq 에이전트(get_vacation_policy)가 동시에 작업 수행!",
+          "   └─ 각 에이전트가 작업 완료 후 'Supervisor로 이동합니다.' 메시지와 함께 복귀합니다.",
+          "4️⃣ [➔ supervisor ➔ END] 본부장이 두 부서의 결과를 요약/생략 없이 그대로 합쳐 최종 답변을 전달합니다!"
+        ]
+      },
+      planning: {
+        boxes: ['box-planner', 'box-supervisor', 'box-research', 'box-canvas'],
+        logs: [
+          "👤 [사용자 요청] '멀티 에이전트 시스템의 최신 동향을 조사해서 마크다운 보고서(.md)로 저장해줘.'",
+          "--------------------------------------------------------------------------------",
+          "1️⃣ [START ➔ planning] 수석 기획자(planning_node)가 Structured Output으로 2단계 계획(Plan)을 수립합니다.",
+          "   └─ plan = ['1. 멀티 에이전트 최신 동향 웹 자료 조사', '2. 조사 결과 기반 목차 구성 및 마크다운 보고서 저장']",
+          "   └─ 반환: Command(goto='supervisor', update={'plan': plan, ...})",
+          "2️⃣ [supervisor ➔ research] 현장 매니저가 오직 첫 번째 작업(plan[0])만 보고 Router로 'research'를 호출합니다.",
+          "   └─ 🔍 research_agent가 웹 검색 후 결과를 남기고 supervisor로 복귀 → past_steps에 1단계 완료 기록!",
+          "3️⃣ [supervisor ➔ planning] 기획자가 완료된 1단계를 확인하고 남은 계획(2단계)으로 Replan 업데이트!",
+          "4️⃣ [supervisor ➔ canvas] 현장 매니저가 남은 작업(보고서 작성)을 보고 'canvas' 에이전트를 호출합니다.",
+          "   └─ ✍️ canvas_agent가 ①목차 작성 → ②마크다운 집필 → ③'outputs/멀티에이전트_동향.md' 저장 완료!",
+          "5️⃣ [supervisor ➔ planning ➔ END] 모든 계획 완료! 기획자가 ConversationalResponse로 최종 완료 인사를 건넵니다."
+        ]
+      }
+    };
+
+    function runSim(type) {
+      const data = scenarios[type];
+      const allBoxes = document.querySelectorAll('.sim-agent-box');
+      allBoxes.forEach(b => b.classList.remove('active'));
+
+      data.boxes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('active');
+      });
+
+      const logEl = document.getElementById('sim-log');
+      logEl.textContent = data.logs.join('\n');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHAPTER 6. 싱글 에이전트(Single Agent) 완벽 가이드 | 비전공자 맞춤형 교재</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --primary: #4f46e5;
+      --primary-soft: #eef2ff;
+      --secondary: #0ea5e9;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --code-bg: #1e293b;
+      --code-text: #f8fafc;
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* 상단 히어로 배너 */
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #0284c7 100%);
+      color: #ffffff;
+      padding: 64px 24px 56px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+
+    .hero p {
+      max-width: 780px;
+      margin: 0 auto;
+      font-size: 1.08rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* 레이아웃 */
+    .layout {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static !important;
+      }
+    }
+
+    /* 사이드바 네비게이션 */
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      padding: 0 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-list a {
+      display: block;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      font-weight: 500;
+      padding: 9px 12px;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-list a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* 본문 섹션 카드 */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 640px) {
+      .section-card {
+        padding: 24px 18px;
+      }
+    }
+
+    .chapter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 5px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .section-card h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .section-card h3 {
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-card p {
+      color: #334155;
+      margin-bottom: 14px;
+    }
+
+    /* 비유 박스 & 팁 박스 */
+    .analogy-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin: 18px 0;
+    }
+
+    .analogy-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+    }
+
+    .tip-box {
+      background: #ecfdf5;
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .tip-title {
+      font-weight: 700;
+      color: #047857;
+      margin-bottom: 6px;
+    }
+
+    .warn-box {
+      background: #fffbeb;
+      border-left: 4px solid var(--warning);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .warn-title {
+      font-weight: 700;
+      color: #b45309;
+      margin-bottom: 6px;
+    }
+
+    /* 개념 그리드 */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .concept-item {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .concept-icon {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .concept-item h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .concept-item p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    /* 코드 블록 & 줄별 해설 */
+    .code-container {
+      margin: 20px 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .code-header {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-badge {
+      background: rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .c-comment { color: #94a3b8; font-style: italic; }
+    .c-kw { color: #c084fc; font-weight: 600; }
+    .c-str { color: #86efac; }
+    .c-fn { color: #60a5fa; }
+    .c-num { color: #fbbf24; }
+
+    /* 표 스타일 */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-alt);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* 다이어그램 흐름도 */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--surface-alt);
+      padding: 24px;
+      border-radius: 14px;
+      margin: 20px 0;
+      border: 1px dashed #cbd5e1;
+    }
+
+    .flow-node {
+      background: var(--surface);
+      border: 2px solid var(--primary);
+      color: var(--text);
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.93rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .flow-node.start-end {
+      background: var(--primary);
+      color: white;
+      border-radius: 999px;
+    }
+
+    .flow-node.cond {
+      border-color: var(--warning);
+      background: #fffbeb;
+    }
+
+    .flow-node.tool {
+      border-color: var(--accent);
+      background: #ecfdf5;
+    }
+
+    .flow-arrow {
+      font-weight: 800;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+    }
+
+    /* 인터랙티브 시뮬레이터 */
+    .simulator {
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      border: 2px solid #c7d2fe;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .sim-title {
+      font-size: 1.12rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sim-select, .sim-input {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .sim-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sim-btn:hover {
+      background: #4338ca;
+    }
+
+    .sim-result {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      font-size: 0.93rem;
+    }
+
+    .step-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      margin-right: 6px;
+    }
+
+    .badge-pass { background: #dcfce7; color: #166534; }
+    .badge-warn { background: #fef3c7; color: #92400e; }
+    .badge-block { background: #fee2e2; color: #991b1b; }
+    .badge-info { background: #e0e7ff; color: #3730a3; }
+
+    code.inline {
+      background: #f1f5f9;
+      color: #db2777;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 배너 -->
+  <header class="hero">
+    <div class="hero-badge">📚 만들면서 배우는 AI 에이전트 개발 입문+실전</div>
+    <h1>CHAPTER 6. 싱글 에이전트(Single Agent) 완벽 가이드</h1>
+    <p>웹 검색부터 코딩 실행, 미들웨어 제어, 그리고 스스로 검증하는 Self-RAG까지 — 손발(도구)을 가진 진짜 AI 에이전트 만들기</p>
+  </header>
+
+  <div class="layout">
+    <!-- 왼쪽 목차 사이드바 -->
+    <aside class="sidebar">
+      <div class="sidebar-title">목차 (CHAPTER 6)</div>
+      <ul class="nav-list">
+        <li><a href="#intro">🌱 6장 한눈에 보기: 4가지 에이전트</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="#sec-6-2">1️⃣ [6.2절] 웹 검색 에이전트 (web_agent)</a></li>
+        <li><a href="#sec-6-3">2️⃣ [6.3절] 코딩 에이전트 (coding_agent)</a></li>
+        <li><a href="#sec-6-4">3️⃣ [6.4절] create_agent와 미들웨어</a></li>
+        <li><a href="#sec-6-5">4️⃣ [6.5절] Self-RAG 에이전트 (rag_agent)</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="#sim-section">🎮 인터랙티브 시뮬레이터</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="PART2_guide.html">⬅️ 이전: PART 2 기초 가이드</a></li>
+      </ul>
+    </aside>
+
+    <!-- 오른쪽 본문 영역 -->
+    <main class="content">
+
+      <!-- 0. 6장 전체 로드맵 -->
+      <section id="intro" class="section-card">
+        <span class="chapter-tag">🌱 CHAPTER 6 로드맵</span>
+        <h2>챗봇(Chatbot)을 넘어 에이전트(Agent)로: 무엇이 달라질까요?</h2>
+        <p>PART 2에서 만든 기본 챗봇이 <strong>"머릿속 지식만으로 대답하는 상담원"</strong>이었다면, 6장의 싱글 에이전트는 <strong>"인터넷 검색기, 파이썬 실험실, 도서관 사서 같은 도구(Tool)를 직접 다루며 문제를 해결하는 만능 실무자"</strong>입니다.</p>
+
+        <div class="concept-grid">
+          <div class="concept-item">
+            <div class="concept-icon">🌐</div>
+            <h4>6.2 웹 검색 에이전트</h4>
+            <p><strong>"스마트폰 검색을 쓰는 오픈북 수험생"</strong><br/><code class="inline">TavilySearch</code>와 <code class="inline">BasicToolNode</code>를 직접 조립해 최신 정보를 검색합니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">💻</div>
+            <h4>6.3 코딩 에이전트</h4>
+            <p><strong>"코드를 짜고 실험해 저장하는 개발자"</strong><br/><code class="inline">@tool</code>로 나만의 도구를 만들고 <code class="inline">create_agent</code>로 단숨에 조립합니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">🛡️</div>
+            <h4>6.4 미들웨어 에이전트</h4>
+            <p><strong>"상담원을 보조하는 스마트 매니저"</strong><br/>대화 길이에 따라 모델을 바꾸고, 금지어를 차단하며, 말투를 동적으로 바꿉니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">📚</div>
+            <h4>6.5 Self-RAG 에이전트</h4>
+            <p><strong>"자료를 찾고 팩트체크까지 하는 연구원"</strong><br/>PDF 도서관(Chroma)에서 검색 후 관련성 심사와 환각(거짓말) 검증을 수행합니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 1. 6.2 웹 검색 에이전트 -->
+      <section id="sec-6-2" class="section-card">
+        <span class="chapter-tag">폴더: CHAP6_single-agent/web_agent</span>
+        <h2>1. [6.2절] 웹 검색 에이전트 만들기 (TavilySearch &amp; 도구 호출 원리)</h2>
+        <p>AI 모델(<code class="inline">gemini-3.8-flash</code>)은 학습된 시점 이후의 최신 뉴스나 실시간 정보를 알지 못합니다. 이 한계를 극복하기 위해 AI 전용 검색 엔진인 <strong>TavilySearch</strong>를 연결하고, 랭그래프로 <strong>[질문 판단 ➡️ 웹 검색 ➡️ 최종 답변]</strong>의 순환 고리를 직접 만들어 봅니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 일상 비유: 왜 AI가 직접 검색하지 않고 '도구 호출 주문서(tool_calls)'를 쓸까요?</div>
+          <p style="margin-bottom:0;">
+            많은 입문자가 <em>"AI 모델에게 <code class="inline">bind_tools</code>를 하면 AI가 직접 인터넷에 접속하나요?"</em>라고 묻습니다. 정답은 <strong>"아니요!"</strong>입니다.<br/>
+            • <strong>챗봇 노드 (두뇌 / 요리사)</strong>: 손님 주문을 듣고 <em>"아, 이건 냉장고에서 '랭그래프' 재료를 꺼내와야겠군!"</em>이라며 <strong>주문 전표(<code class="inline">tool_calls</code>)</strong>만 작성합니다.<br/>
+            • <strong>BasicToolNode (손발 / 심부름꾼)</strong>: 요리사가 쓴 주문 전표를 받아 실제로 창고(인터넷)에 가서 검색 결과를 가져온 뒤, <strong>결과 봉투(<code class="inline">ToolMessage</code>)</strong>에 담아 다시 요리사에게 건네줍니다!
+          </p>
+        </div>
+
+        <h3>🔄 웹 검색 에이전트의 순환(Loop) 흐름도</h3>
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">🧠 chatbot 노드<br/><small>(gemini-3.8-flash + bind_tools)</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node cond">❓ route_tools<br/><small>(tool_calls 주문서가 있나?)</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node tool">🛠️ tools 노드 (BasicToolNode)<br/><small>TavilySearch 실행 후 chatbot으로 복귀 ↩️</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node start-end">END (최종 답변)</div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 web_agent/agent.py 핵심 구조</span>
+            <span class="code-badge">수동 그래프 조립</span>
+          </div>
+          <pre><span class="c-comment"># 1. 검색 도구 준비 및 AI 모델에 '도구 설명서' 연결하기 (bind_tools)</span>
+tool = <span class="c-fn">TavilySearch</span>(max_results=<span class="c-num">3</span>)
+llm = <span class="c-fn">ChatGoogleGenerativeAI</span>(model=<span class="c-str">"gemini-3.8-flash"</span>)
+llm_with_tools = llm.<span class="c-fn">bind_tools</span>([tool])
+
+<span class="c-comment"># 2. 심부름꾼 노드(BasicToolNode): AI가 작성한 tool_calls 주문서를 보고 실제 검색 실행!</span>
+<span class="c-kw">for</span> tool_call <span class="c-kw">in</span> message.tool_calls:
+    tool_result = self.tools_by_name[tool_call[<span class="c-str">"name"</span>]].<span class="c-fn">invoke</span>(tool_call[<span class="c-str">"args"</span>])
+    outputs.<span class="c-fn">append</span>(
+        <span class="c-fn">ToolMessage</span>(
+            content=json.<span class="c-fn">dumps</span>(tool_result, ensure_ascii=<span class="c-kw">False</span>),
+            name=tool_call[<span class="c-str">"name"</span>],
+            tool_call_id=tool_call[<span class="c-str">"id"</span>], <span class="c-comment"># 어떤 주문서의 결과인지 짝을 맞춤!</span>
+        )
+    )
+
+<span class="c-comment"># 3. 검색이 끝나면 다시 chatbot으로 돌아가서 검색 결과를 읽고 최종 답변을 쓰게 함!</span>
+graph_builder.<span class="c-fn">add_edge</span>(<span class="c-str">"tools"</span>, <span class="c-str">"chatbot"</span>)</pre>
+        </div>
+
+        <h3>📊 그래프 실행 방식 5가지 완벽 비교 (<code class="inline">invoke</code> vs <code class="inline">stream</code>)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>메서드 / 옵션</th>
+                <th>일상 비유</th>
+                <th>동작 방식 및 특징</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="inline">invoke()</code> / <code class="inline">ainvoke()</code></td>
+                <td>📦 <strong>완제품 택배 받기</strong></td>
+                <td>모든 노드의 작업이 끝날 때까지 기다렸다가 최종 완성된 <code class="inline">State</code> 전체를 한 번에 받습니다.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">stream()</code> <small>(기본: updates)</small></td>
+                <td>🚚 <strong>부서별 완료 보고 문자</strong></td>
+                <td>각 노드(<code class="inline">chatbot</code>, <code class="inline">tools</code>)가 일을 마칠 때마다 <strong>그 노드가 새로 추가한 데이터만</strong> 실시간으로 받습니다.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">stream(stream_mode="values")</code></td>
+                <td>📸 <strong>단계별 전체 기념사진</strong></td>
+                <td>한 노드가 끝날 때마다 지금까지 누적된 <strong>전체 메모장(<code class="inline">State</code>)의 스냅샷</strong>을 통째로 보여줍니다.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">stream(stream_mode="messages")</code></td>
+                <td>⌨️ <strong>실시간 타이핑 생중계</strong></td>
+                <td>챗GPT 화면처럼 AI가 글자(토큰)를 생성하는 즉시 한 조각씩 실시간으로 출력합니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 2. 6.3 코딩 에이전트 -->
+      <section id="sec-6-3" class="section-card">
+        <span class="chapter-tag">폴더: CHAP6_single-agent/coding_agent</span>
+        <h2>2. [6.3절] 코딩 에이전트 만들기 (<code class="inline">@tool</code> &amp; <code class="inline">create_agent</code>)</h2>
+        <p>6.2절에서는 남이 만든 검색 도구(<code class="inline">TavilySearch</code>)를 썼다면, 6.3절에서는 <strong>내가 직접 만든 파이썬 함수</strong>를 AI의 도구로 변신시키고(<code class="inline">@tool</code>), 복잡한 그래프 조립 과정을 단 한 줄(<code class="inline">create_agent</code>)로 줄여봅니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 핵심 포인트: 함수 안의 설명글(Docstring)은 AI가 읽는 '도구 사용 설명서'입니다!</div>
+          <p style="margin-bottom:0;">
+            원래 파이썬에서 <code class="inline">"""..."""</code>(독스트링)은 동료 개발자 보라고 적는 주석이지만, <code class="inline">@tool</code> 데코레이터를 붙이는 순간 <strong>AI가 어떤 도구를 언제 써야 할지 판단하는 절대적인 기준표</strong>가 됩니다. 예를 들어 <code class="inline">python_exec_tool</code>의 설명글에 <em>"실행 결과를 확인하고 싶다면 print(...)를 사용해야 합니다"</em>라고 적어두면, AI가 스스로 코드 끝에 <code class="inline">print()</code>를 넣어서 실행합니다!
+          </p>
+        </div>
+
+        <h3>🛠️ 사용자 정의 도구(<code class="inline">@tool</code>)를 만드는 3가지 방법 (<code class="inline">custom_tools.ipynb</code>)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>방식</th>
+                <th>코드 형태</th>
+                <th>언제 사용하면 좋을까요?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>① 기본 <code class="inline">@tool</code></strong></td>
+                <td><code class="inline">@tool</code> + 타입 힌트(<code class="inline">a: int</code>)</td>
+                <td>입력 인자 이름만으로 의미가 명확한 아주 간단한 도구에 사용합니다.</td>
+              </tr>
+              <tr>
+                <td><strong>② Pydantic 스키마</strong></td>
+                <td><code class="inline">@tool(args_schema=CalculatorInput)</code><br/>또는 인자에 <code class="inline">Field(description=...)</code></td>
+                <td>입력값이 복잡하거나 각 인자마다 정교한 설명과 검증 규칙을 넣고 싶을 때 사용합니다.</td>
+              </tr>
+              <tr>
+                <td><strong>③ Docstring 자동 파싱</strong></td>
+                <td><code class="inline">@tool(parse_docstring=True)</code></td>
+                <td>별도 클래스를 만들지 않고 함수 안의 <code class="inline">Args:</code> 주석만으로 깔끔하게 인자 설명을 등록할 때 사용합니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 coding_agent/tools.py &amp; agent.py</span>
+            <span class="code-badge">오토매틱 에이전트 생성</span>
+          </div>
+          <pre><span class="c-comment"># [tools.py] 1. 파이썬 코드를 먼저 임포트 테스트 후 실행해보는 실험실 도구</span>
+@tool
+<span class="c-kw">def</span> <span class="c-fn">python_exec_tool</span>(
+    imports: <span class="c-fn">str</span> = <span class="c-fn">Field</span>(description=<span class="c-str">"임포트 구문"</span>),
+    code: <span class="c-fn">str</span> = <span class="c-fn">Field</span>(description=<span class="c-str">"임포트 구문을 제외한 코드 블록"</span>),
+) -&gt; <span class="c-fn">str</span>:
+    <span class="c-str">"""파이썬 코드를 실행하는 도구입니다..."""</span>
+    <span class="c-fn">exec</span>(imports)                  <span class="c-comment"># 1단계: 모듈 임포트 확인</span>
+    <span class="c-fn">exec</span>(imports + <span class="c-str">"\n"</span> + code)    <span class="c-comment"># 2단계: 본문 코드 실행 확인</span>
+    <span class="c-kw">return</span> <span class="c-str">f"성공적으로 코드가 실행되었습니다. :\n```python\n{code}\n```"</span>
+
+<span class="c-comment"># [agent.py] 2. create_agent로 단 한 번에 [모델 ⇄ 도구] 순환 그래프 완성!</span>
+llm = <span class="c-fn">ChatGoogleGenerativeAI</span>(model=<span class="c-str">"gemini-3.8-flash"</span>)
+graph = <span class="c-fn">create_agent</span>(
+    model=llm,
+    tools=[python_exec_tool, file_write_tool]
+)</pre>
+        </div>
+      </section>
+
+      <!-- 3. 6.4 create_agent와 미들웨어 -->
+      <section id="sec-6-4" class="section-card">
+        <span class="chapter-tag">폴더: CHAP6_single-agent/create_agent</span>
+        <h2>3. [6.4절] <code class="inline">create_agent</code>와 미들웨어(Middleware) 완벽 마스터</h2>
+        <p><code class="inline">create_agent</code>는 한 줄로 에이전트를 만들어 주어 편리하지만, <em>"AI를 부르기 전에 욕설을 차단하고 싶다면?"</em> 혹은 <em>"대화가 길어지면 더 똑똑한 모델로 자동 교체하고 싶다면?"</em> 어떻게 해야 할까요? 그래프를 처음부터 다시 짜지 않고도 중간에 끼어들어 흐름을 제어하는 장치가 바로 <strong>미들웨어(Middleware)</strong>입니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 일상 비유: 건물 입구의 '보안 검색대 부스(@before_model)' vs 상담원 옆의 '귓속말 매니저(@wrap_model_call)'</div>
+          <p style="margin-bottom:0;">
+            미들웨어는 크게 <strong>그래프에 새로운 방(노드)을 추가하는 방식</strong>과 <strong>방 추가 없이 모델 호출만 감싸는 방식</strong> 두 가지로 나뉩니다.<br/>
+            • <strong><code class="inline">@before_model</code> (독립 검문소 부스 추가 ⭕)</strong>: 그래프 설계도에 실제로 검문소 노드가 하나 더 생깁니다. 금지어(<code class="inline">"바보"</code> 등)가 있으면 아예 모델 방으로 가는 길을 차단합니다.<br/>
+            • <strong><code class="inline">@wrap_model_call</code> &amp; <code class="inline">@dynamic_prompt</code> (별도 부스 추가 ❌)</strong>: 그래프 모양은 그대로 두고, 모델이 호출되는 순간 매니저가 개입해 모델을 교체(<code class="inline">request.override</code>)하거나 시스템 프롬프트(말투)를 실시간으로 바꿔줍니다.
+          </p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>데코레이터</th>
+                <th>그래프에 노드 추가 여부</th>
+                <th>주요 활용 사례 (실습 파일)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="inline">@wrap_model_call</code></td>
+                <td>❌ <strong>추가 안 됨</strong> (호출 감싸기)</td>
+                <td>대화 메시지 수가 10개를 넘으면 고급 모델로 동적 교체 (<code class="inline">middleware.py</code>)</td>
+              </tr>
+              <tr>
+                <td><code class="inline">@before_model</code></td>
+                <td>⭕ <strong>노드 추가됨</strong> (<code class="inline">...before_model</code>)</td>
+                <td>AI 호출 전 사용자 입력에서 금지어(<code class="inline">BLOCKED_WORDS</code>) 필터링 및 예외 발생 (<code class="inline">middleware_with_node.py</code>)</td>
+              </tr>
+              <tr>
+                <td><code class="inline">@dynamic_prompt</code></td>
+                <td>❌ <strong>추가 안 됨</strong> (<code class="inline">wrap_model_call</code> 기반)</td>
+                <td>매 호출마다 존댓말/반말 시스템 프롬프트를 동적으로 주입 (<code class="inline">middleware_with_node.py</code>)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 create_agent/middleware.py &amp; middleware_with_node.py 핵심 비교</span>
+            <span class="code-badge">3대 미들웨어 패턴</span>
+          </div>
+          <pre><span class="c-comment"># 패턴 1: @wrap_model_call - 대화 길이(10개 초과)에 따라 모델 바꿔치기</span>
+@wrap_model_call
+<span class="c-kw">def</span> <span class="c-fn">dynamic_model_selection</span>(request: ModelRequest, handler) -&gt; ModelResponse:
+    <span class="c-kw">if</span> <span class="c-fn">len</span>(request.state[<span class="c-str">"messages"</span>]) &gt; <span class="c-num">10</span>:
+        <span class="c-kw">return</span> <span class="c-fn">handler</span>(request.<span class="c-fn">override</span>(model=advanced_model))
+    <span class="c-kw">return</span> <span class="c-fn">handler</span>(request.<span class="c-fn">override</span>(model=basic_model))
+
+<span class="c-comment"># 패턴 2: @before_model - 그래프에 검문소 노드를 추가해 금지어 차단</span>
+@before_model
+<span class="c-kw">def</span> <span class="c-fn">content_filter_middleware</span>(state: AgentState, runtime: Runtime):
+    last_msg = state[<span class="c-str">"messages"</span>][-<span class="c-num">1</span>].content
+    <span class="c-kw">for</span> word <span class="c-kw">in</span> [<span class="c-str">"바보"</span>, <span class="c-str">"멍청이"</span>, <span class="c-str">"나쁜말"</span>]:
+        <span class="c-kw">if</span> word <span class="c-kw">in</span> last_msg:
+            <span class="c-kw">raise</span> <span class="c-fn">ValueError</span>(<span class="c-str">f"부적절한 표현이 감지되었습니다: '{word}'"</span>)
+
+<span class="c-comment"># 패턴 3: @dynamic_prompt - 호출할 때마다 시스템 프롬프트(말투) 동적 변경</span>
+@dynamic_prompt
+<span class="c-kw">def</span> <span class="c-fn">random_tone_prompt</span>(request: ModelRequest) -&gt; <span class="c-fn">str</span>:
+    <span class="c-kw">return</span> <span class="c-str">"항상 존댓말로 정중하게 답변하세요."</span></pre>
+        </div>
+      </section>
+
+      <!-- 4. 6.5 Self-RAG 에이전트 -->
+      <section id="sec-6-5" class="section-card">
+        <span class="chapter-tag">폴더: CHAP6_single-agent/rag_agent</span>
+        <h2>4. [6.5절] 스스로 검증하고 교정하는 Self-RAG 에이전트 만들기</h2>
+        <p>일반적인 RAG(검색증강생성)는 문서를 검색해 오면 무조건 그걸 보고 답을 씁니다. 하지만 <strong>① 검색된 문서가 질문과 전혀 상관없는 내용일 때</strong>나, <strong>② AI가 문서에 없는 내용을 지어내어 거짓말(환각, Hallucination)을 할 때</strong>가 문제입니다. 6.5절에서는 2명의 <strong>AI 심사관(Grader)</strong>을 배치해 스스로 질문을 고쳐 재검색하고 환각을 잡아내는 완성형 RAG 에이전트를 구현합니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">📚 일상 비유: 국립국어원 도서관의 '5개 전문 부서'와 '2명의 깐깐한 심사관'</div>
+          <p style="margin-bottom:0;">
+            우리가 만든 <code class="inline">rag_agent</code>는 264페이지 분량의 <strong>『한글 맞춤법·표준어 규정 해설』 PDF</strong>가 510개의 조각(청크)으로 저장된 디지털 도서관(Chroma DB)을 사용합니다.<br/>
+            • <strong>1차 심사관 (<code class="inline">decide_to_generate</code>)</strong>: 사서가 가져온 문서가 질문과 관련 있는지 <code class="inline">yes / no</code>로 채점합니다. <code class="inline">no</code>라면 <strong>질문 교정 전문가(<code class="inline">transform_query</code>)</strong>에게 보내 질문을 더 똑똑하게 바꿔서 다시 검색하게 합니다! (최대 3회)<br/>
+            • <strong>2차 심사관 (<code class="inline">check_hallucinations</code>)</strong>: 집필가(<code class="inline">generate</code>)가 쓴 답변이 문서의 사실(팩트)에 근거했는지 <code class="inline">yes / no</code>로 채점합니다. 근거 없는 거짓말(<code class="inline">not supported</code>)이라면 다시 답변을 쓰게 돌려보냅니다!
+          </p>
+        </div>
+
+        <h3>🗺️ Self-RAG 에이전트 전체 아키텍처 흐름도</h3>
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">💁 chatbot<br/><small>(일상대화 vs 검색 판단)</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node tool">🔍 retriever<br/><small>(Chroma DB k=3 검색)</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">🧹 context_organizer<br/><small>(공백 정리 &amp; 페이지 유지)</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node cond">⚖️ 1차 심사: 관련 있나?<br/><small>No ➡️ transform_query (질문 교정 후 재검색 ↩️)<br/>Yes ➡️ generate (답변 작성)</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node cond">🔬 2차 심사: 환각 없나?<br/><small>No ➡️ generate (재작성 ↩️)<br/>Yes ➡️ END (최종 완료!)</small></div>
+        </div>
+
+        <h3>🧩 자주 묻는 질문: <code class="inline">rag_agent/state.py</code>에서 리듀서(Reducer)는 어디에 쓰였나요?</h3>
+        <p><strong>"리듀서(Reducer)라는 게 채팅 대화를 계속 누적시키려고 쓰는 건가요?"</strong> ➡️ <strong>네, 맞습니다!</strong> 랭그래프의 상태(<code class="inline">State</code>)는 기본적으로 새 값이 들어오면 기존 값을 <strong>덮어쓰기(Overwrite)</strong>합니다. 따라서 지워지지 않고 카카오톡 대화창처럼 차곡차곡 쌓아야 하는 칸에는 반드시 <strong>리듀서(합치기 규칙)</strong>를 붙여주어야 합니다.</p>
+        <p><code class="inline">rag_agent/state.py</code>의 <code class="inline">GraphState</code>를 보면, <strong>리듀서를 쓰는 변수</strong>와 <strong>리듀서를 안 쓰는 변수</strong>가 왜 나뉘어 있는지 한눈에 이해할 수 있습니다:</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th><code class="inline">GraphState</code> 변수</th>
+                <th>코드 정의 방식</th>
+                <th>리듀서 사용 여부</th>
+                <th>이렇게 설계한 이유 (비유)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="inline">messages</code><br/><small>(<code class="inline">MessagesState</code>에서 상속)</small></td>
+                <td><code class="inline">Annotated[list, add_messages]</code></td>
+                <td>⭕ <strong>리듀서 O (대화 누적)</strong></td>
+                <td>카카오톡 대화창처럼 이전 질문과 AI 답변을 지우지 않고 <strong>아래에 계속 이어 붙여야</strong> 대화 맥락이 유지됩니다.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">question</code></td>
+                <td><code class="inline">question: str</code></td>
+                <td>❌ <strong>리듀서 X (덮어쓰기)</strong></td>
+                <td>질문 교정 전문가(<code class="inline">transform_query</code>)가 질문을 다듬으면, 이전의 어색한 질문은 지우고 <strong>가장 최신 질문 1개</strong>로 갈아끼워야 합니다.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">documents</code></td>
+                <td><code class="inline">documents: List[Document]</code></td>
+                <td>❌ <strong>리듀서 X (덮어쓰기)</strong></td>
+                <td>재검색을 했을 때 이전에 잘못 찾았던 엉뚱한 문서들은 지우고, <strong>새로 찾은 문서들로 교체</strong>해야 합니다.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">retry_num</code></td>
+                <td><code class="inline">retry_num: int</code></td>
+                <td>❌ <strong>리듀서 X (덮어쓰기)</strong></td>
+                <td>현재 몇 번째 재시도인지(<code class="inline">1</code> ➡️ <code class="inline">2</code> ➡️ <code class="inline">3</code>) <strong>최신 숫자 1개</strong>만 기록하면 됩니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 rag_agent/edges.py — with_structured_output으로 O/X 심사관 만들기</span>
+            <span class="code-badge">핵심 기법</span>
+          </div>
+          <pre><span class="c-comment"># AI가 사설 없이 오직 'yes' 또는 'no'로만 딱 떨어지게 채점하도록 Pydantic 스키마 정의</span>
+<span class="c-kw">class</span> <span class="c-fn">Grade</span>(BaseModel):
+    binary_score: <span class="c-fn">str</span> = <span class="c-fn">Field</span>(description=<span class="c-str">"문서가 질문과 관련이 있는지 여부, 'yes' 또는 'no'"</span>)
+
+<span class="c-comment"># with_structured_output(Grade)를 붙이면 무조건 Grade 객체 형태로만 응답을 반환합니다!</span>
+grader = llm.<span class="c-fn">with_structured_output</span>(Grade)
+score = (grader_prompt | grader).<span class="c-fn">invoke</span>({<span class="c-str">"question"</span>: question, <span class="c-str">"context"</span>: context})
+
+<span class="c-kw">if</span> score.binary_score == <span class="c-str">"no"</span>:
+    <span class="c-kw">return</span> <span class="c-str">"transform_query"</span>  <span class="c-comment"># 관련 없으면 질문을 다듬어서 재검색!</span>
+<span class="c-kw">else</span>:
+    <span class="c-kw">return</span> <span class="c-str">"generate"</span>         <span class="c-comment"># 관련 있으면 답변 작성으로 이동!</span></pre>
+        </div>
+
+        <div class="warn-box">
+          <div class="warn-title">⚠️ 무한 루프 방지 장치 (<code class="inline">retry_num &gt;= 3</code>)</div>
+          <p style="margin-bottom:0;">
+            만약 사용자가 한글 맞춤법 PDF에 전혀 없는 질문(예: <em>"오늘 서울 날씨 어때?"</em>)을 했는데도 계속 질문을 바꿔가며 영원히 재검색하면 큰일 나겠죠? 그래서 <code class="inline">transform_query</code>를 거칠 때마다 <code class="inline">retry_num</code>을 1씩 올리고, <strong>3번 이상 실패하면 재검색을 멈추고 현재 문서 안에서 답할 수 있는 대체 질문들을 친절히 추천</strong>하도록 설계되어 있습니다.
+          </p>
+        </div>
+      </section>
+
+      <!-- 5. 인터랙티브 시뮬레이터 -->
+      <section id="sim-section" class="section-card">
+        <span class="chapter-tag">🎮 인터랙티브 실습</span>
+        <h2>직접 체험해보기: Self-RAG &amp; 미들웨어 에이전트 시뮬레이터</h2>
+        <p>아래에서 시나리오를 선택하고 <strong>[에이전트 실행 시뮬레이션]</strong> 버튼을 눌러보세요! 질문의 성격에 따라 랭그래프의 노드와 조건부 엣지(심사관)들이 어떤 경로로 움직이는지 단계별로 확인할 수 있습니다.</p>
+
+        <div class="simulator">
+          <div class="sim-title">🚀 CHAPTER 6 싱글 에이전트 라우팅 시뮬레이터</div>
+          <div class="sim-controls">
+            <select id="scenarioSelect" class="sim-select">
+              <option value="rag_good">📚 [6.5 Self-RAG] "구개음화가 뭐야?" (관련 문서 즉시 발견 시나리오)</option>
+              <option value="rag_retry">🔄 [6.5 Self-RAG] "발음 굴러가는 법칙 알려줘" (1차 심사 탈락 ➡️ 질문 교정 후 재검색 시나리오)</option>
+              <option value="rag_chat">💬 [6.5 Self-RAG] "안녕하세요! 반가워요" (도구 호출 없이 일상 대화 즉시 종료)</option>
+              <option value="mw_block">🚫 [6.4 미들웨어] "바보야 10과 5를 더해줘" (@before_model 금지어 차단 시나리오)</option>
+              <option value="web_search">🌐 [6.2 웹 검색] "2026년 AI 트렌드는 무엇인가요?" (TavilySearch 도구 호출 루프)</option>
+            </select>
+            <button class="sim-btn" onclick="runChap6Sim()">▶️ 에이전트 실행 시뮬레이션</button>
+          </div>
+          <div id="chap6SimOutput" class="sim-result"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    function runChap6Sim() {
+      const val = document.getElementById('scenarioSelect').value;
+      const out = document.getElementById('chap6SimOutput');
+
+      if (val === 'rag_good') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="step-badge badge-info">시나리오: Self-RAG 정상 검색 및 검증 통과</span>
+          </div>
+          <p style="margin-bottom:8px; color:#1e293b;">
+            <strong>실행 경로:</strong>
+            <code>START</code> ➡️ <code>chatbot</code> (pdf_search 호출) ➡️ <code>retriever</code> (Page 24, 240, 245 검색) ➡️ <code>context_organizer</code> ➡️ <strong>[1차 심사: yes]</strong> ➡️ <code>generate</code> ➡️ <strong>[2차 환각 심사: support]</strong> ➡️ <code>END</code>
+          </p>
+          <div style="background:#0f172a; color:#f8fafc; padding:14px 16px; border-radius:10px; font-family:monospace; font-size:0.87rem; line-height:1.6;">
+            ----- [CHATBOT] ----- tool_calls: [{'name': 'pdf_search', 'args': {'query': '구개음화'}}]<br/>
+            ----- [RETRIEVER] ----- Chroma DB에서 관련 청크 3개 추출 완료 (Page 24, 240, 245)<br/>
+            ----- ASSESS GRADED DOCUMENTS ----- binary_score = 'yes' (---DECISION: GENERATE---)<br/>
+            ----- [GENERATE] ----- "구개음화는 끝소리가 'ㄷ, ㅌ'인 형태소가 모음 'ㅣ'나 반모음 'ㅣ'로 시작하는 형식 형태소와 만나 각각 'ㅈ, ㅊ'으로 바뀌는 현상입니다. (출처: Page 24, 245)"<br/>
+            ----- CHECK HALLUCINATIONS ----- binary_score = 'yes' (---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---)
+          </div>
+        `;
+      } else if (val === 'rag_retry') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="step-badge badge-warn">시나리오: 1차 관련성 심사 탈락 후 질문 재작성(transform_query) 루프 작동!</span>
+          </div>
+          <p style="margin-bottom:8px; color:#1e293b;">
+            <strong>실행 경로:</strong>
+            <code>START</code> ➡️ <code>chatbot</code> ➡️ <code>retriever</code> ➡️ <code>context_organizer</code> ➡️ <span class="badge-block">[1차 심사: no]</span> ➡️ <code>transform_query</code> (질문 교정, retry_num=1) ➡️ <code>retriever</code> (재검색!) ➡️ <code>context_organizer</code> ➡️ <span class="badge-pass">[1차 심사: yes]</span> ➡️ <code>generate</code> ➡️ <code>END</code>
+          </p>
+          <div style="background:#0f172a; color:#f8fafc; padding:14px 16px; border-radius:10px; font-family:monospace; font-size:0.87rem; line-height:1.6;">
+            ----- ASSESS GRADED DOCUMENTS ----- binary_score = 'no' (검색된 문서가 모호한 질문과 맞지 않음)<br/>
+            ---DECISION: RETRIEVED DOCUMENT ARE NOT RELEVANT TO QUESTION, TRANSFORM QUERY---<br/>
+            ----- [TRANSFORM QUERY] ----- 초기 질문 교정 완료: "국어 음운 현상 중 연음 법칙과 자음 동화 및 표준 발음 규정" (retry_num: 1)<br/>
+            ----- [RETRIEVER] ----- 개선된 질문으로 Chroma DB 재검색 수행!<br/>
+            ----- ASSESS GRADED DOCUMENTS ----- binary_score = 'yes' ➡️ [GENERATE] 답변 생성 완료!
+          </div>
+        `;
+      } else if (val === 'rag_chat') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="step-badge badge-pass">시나리오: 도구 호출이 필요 없는 일상 대화</span>
+          </div>
+          <p style="margin-bottom:8px; color:#1e293b;">
+            <strong>실행 경로:</strong>
+            <code>START</code> ➡️ <code>chatbot</code> (tool_calls 없음!) ➡️ <code>tools_condition</code> ➡️ <code>END</code> <em>(검색기나 심사관을 부르지 않고 즉시 종료!)</em>
+          </p>
+          <div style="background:#0f172a; color:#f8fafc; padding:14px 16px; border-radius:10px; font-family:monospace; font-size:0.87rem; line-height:1.6;">
+            ----- [CHATBOT] -----<br/>
+            AIMessage(content="안녕하세요! 한글 맞춤법이나 표준어 규정에 대해 궁금한 점이 있으시면 언제든 물어보세요.", tool_calls=[])<br/>
+            ============================================================ (즉시 END)
+          </div>
+        `;
+      } else if (val === 'mw_block') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="step-badge badge-block">시나리오: @before_model 미들웨어 검문소에서 금지어 즉시 차단</span>
+          </div>
+          <p style="margin-bottom:8px; color:#1e293b;">
+            <strong>실행 경로:</strong>
+            <code>START</code> ➡️ <code>content_filter_middleware.before_model</code> (금지어 '바보' 적발!) ➡️ <strong>ValueError 발생 및 즉시 중단</strong> <em>(AI 모델 호출 비용 0원!)</em>
+          </p>
+          <div style="background:#0f172a; color:#f8fafc; padding:14px 16px; border-radius:10px; font-family:monospace; font-size:0.87rem; line-height:1.6;">
+            [before_model] 🚫 금지어 감지: '바보'<br/>
+            ❌ 차단됨: 부적절한 표현이 감지되었습니다: '바보'
+          </div>
+        `;
+      } else if (val === 'web_search') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="step-badge badge-info">시나리오: 6.2 웹 검색 에이전트 (TavilySearch 도구 호출 &amp; 순환)</span>
+          </div>
+          <p style="margin-bottom:8px; color:#1e293b;">
+            <strong>실행 경로:</strong>
+            <code>START</code> ➡️ <code>chatbot</code> (tavily_search 주문서 작성) ➡️ <code>route_tools</code> ➡️ <code>tools (BasicToolNode)</code> (웹 검색 후 ToolMessage 반환) ➡️ <code>chatbot</code> (검색 결과 종합 답변) ➡️ <code>END</code>
+          </p>
+          <div style="background:#0f172a; color:#f8fafc; padding:14px 16px; border-radius:10px; font-family:monospace; font-size:0.87rem; line-height:1.6;">
+            --- chatbot --- AIMessage(content='', tool_calls=[{'name': 'tavily_search', 'args': {'query': '2026 AI trends'}}])<br/>
+            --- tools --- ToolMessage(content='{"results": [{"title": "2026 AI Agent Trends...", ...}]}', name='tavily_search')<br/>
+            --- chatbot --- AIMessage(content='검색 결과에 따르면 2026년 주요 AI 트렌드는 멀티 에이전트 협업과 자율형 워크플로우입니다...')
+          </div>
+        `;
+      }
+    }
+    runChap6Sim();
+  </script>
+</body>
+</html>

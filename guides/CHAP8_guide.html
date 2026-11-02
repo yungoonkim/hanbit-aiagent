@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHAP 8. 단기 메모리 vs 장기 메모리 완벽 가이드 | 비전공자 맞춤형 교재</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --primary: #4f46e5;
+      --primary-soft: #eef2ff;
+      --secondary: #0ea5e9;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --code-bg: #1e293b;
+      --code-text: #f8fafc;
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* 상단 히어로 배너 */
+    .hero {
+      background: linear-gradient(135deg, #312e81 0%, #4f46e5 55%, #0284c7 100%);
+      color: #ffffff;
+      padding: 64px 24px 56px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 0 auto;
+      font-size: 1.08rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* 레이아웃 */
+    .layout {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static !important;
+      }
+    }
+
+    /* 사이드바 네비게이션 */
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      padding: 0 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-list a {
+      display: block;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.93rem;
+      font-weight: 500;
+      padding: 9px 12px;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-list a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* 본문 섹션 카드 */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 640px) {
+      .section-card {
+        padding: 24px 18px;
+      }
+    }
+
+    .chapter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 5px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .section-card h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .section-card h3 {
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-card p {
+      color: #334155;
+      margin-bottom: 14px;
+    }
+
+    /* 비유 박스 & 팁 박스 */
+    .analogy-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin: 18px 0;
+    }
+
+    .analogy-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+    }
+
+    .tip-box {
+      background: #ecfdf5;
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .tip-title {
+      font-weight: 700;
+      color: #047857;
+      margin-bottom: 6px;
+    }
+
+    .warn-box {
+      background: #fffbeb;
+      border-left: 4px solid var(--warning);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .warn-title {
+      font-weight: 700;
+      color: #b45309;
+      margin-bottom: 6px;
+    }
+
+    /* 개념 그리드 */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .concept-item {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .concept-icon {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .concept-item h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .concept-item p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    /* 코드 블록 */
+    .code-container {
+      margin: 20px 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .code-header {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-badge {
+      background: rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .c-comment { color: #94a3b8; font-style: italic; }
+    .c-kw { color: #c084fc; font-weight: 600; }
+    .c-str { color: #86efac; }
+    .c-fn { color: #60a5fa; }
+    .c-num { color: #fbbf24; }
+
+    /* 표 스타일 */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-alt);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* 다이어그램 흐름도 */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--surface-alt);
+      padding: 24px;
+      border-radius: 14px;
+      margin: 20px 0;
+      border: 1px dashed #cbd5e1;
+    }
+
+    .flow-node {
+      background: var(--surface);
+      border: 2px solid var(--primary);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .flow-node.start-end {
+      background: var(--primary);
+      color: white;
+      border-radius: 999px;
+    }
+
+    .flow-node.cond {
+      border-color: var(--warning);
+      background: #fffbeb;
+    }
+
+    .flow-arrow {
+      font-weight: 800;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+    }
+
+    /* 인터랙티브 시뮬레이터 */
+    .simulator {
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      border: 2px solid #c7d2fe;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .sim-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sim-input, .sim-select {
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .sim-input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .sim-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sim-btn:hover {
+      background: #4338ca;
+    }
+
+    .sim-btn.secondary {
+      background: #0ea5e9;
+    }
+
+    .sim-btn.secondary:hover {
+      background: #0284c7;
+    }
+
+    .sim-result {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      font-size: 0.93rem;
+    }
+
+    .badge-pass {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    .badge-block {
+      display: inline-block;
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    .badge-info {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    code.inline {
+      background: #f1f5f9;
+      color: #db2777;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 배너 -->
+  <header class="hero">
+    <div class="hero-badge">📚 만들면서 배우는 AI 에이전트 개발 입문+실전</div>
+    <h1>CHAP 8. 단기 메모리 vs 장기 메모리 완벽 가이드</h1>
+    <p>오늘 통화 내용을 기억하는 '단기 기억(InMemorySaver)'부터 몇 달 뒤에도 취향을 알아보는 '장기 기억(InMemoryStore)'까지 한눈에 마스터하기</p>
+  </header>
+
+  <div class="layout">
+    <!-- 왼쪽 목차 사이드바 -->
+    <aside class="sidebar">
+      <div class="sidebar-title">목차 (CHAP 8)</div>
+      <ul class="nav-list">
+        <li><a href="#intro">🌱 시작하기 전에: 2가지 기억 비교</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="#sec-8-2">1️⃣ [8.2절] 단기 메모리와 thread_id</a></li>
+        <li><a href="#sec-8-3-1">2️⃣ [8.3.1절] 메시지 트리밍 (가위질)</a></li>
+        <li><a href="#sec-8-3-2">3️⃣ [8.3.2절] 메시지 요약 (포스트잇)</a></li>
+        <li><a href="#sec-8-4-1">4️⃣ [8.4.1절] 장기 메모리와 시맨틱 검색</a></li>
+        <li><a href="#sec-8-4-5">5️⃣ [8.4.2~5절] 맞춤형 라이프 코치 에이전트</a></li>
+        <li><a href="#simulator">🎮 인터랙티브 메모리 시뮬레이터</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="index.html">🏠 전체 챕터 목차로 돌아가기</a></li>
+      </ul>
+    </aside>
+
+    <!-- 오른쪽 본문 영역 -->
+    <main class="content">
+
+      <!-- 0. 워밍업: 단기 기억 vs 장기 기억 -->
+      <section id="intro" class="section-card">
+        <span class="chapter-tag">🌱 워밍업</span>
+        <h2>시작하기 전에: 단기 기억 vs 장기 기억 한눈에 비교하기</h2>
+        <p>사람도 방금 들은 전화번호를 외우는 <strong>단기 기억</strong>과 내 단골 메뉴나 어릴 적 추억을 기억하는 <strong>장기 기억</strong>이 따로 있듯, 랭그래프 에이전트도 두 가지 기억 장치를 나누어 사용합니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 일상 비유: 콜센터 오늘 통화 메모지 vs 단골 미용실 고객 수첩</div>
+          <p style="margin-bottom:0;">
+            • <strong>단기 메모리 (<code class="inline">InMemorySaver</code> + <code class="inline">thread_id</code>)</strong> = 상담원이 <strong>오늘 이번 통화 중에만</strong> 적어두는 <strong>일회용 통화 메모지</strong>입니다. 통화 방(<code class="inline">thread_id</code>)이 바뀌면 이전 통화 내용은 보이지 않습니다.<br/>
+            • <strong>장기 메모리 (<code class="inline">InMemoryStore</code> + <code class="inline">user_id</code>)</strong> = 단골 미용실 원장님이 손님 이름(<code class="inline">user_id</code>)별로 취향, 목표, 고민을 적어두는 <strong>평생 단골 수첩</strong>입니다. 다음 달에 새 통화(<code class="inline">thread_id="2"</code>)로 찾아와도 수첩을 펼쳐 기억해 냅니다!
+          </p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>단기 메모리 (Short-term Memory)</th>
+                <th>장기 메모리 (Long-term Memory)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>일상 비유</strong></td>
+                <td>📞 이번 통화에서만 쓰는 <strong>통화 메모지</strong></td>
+                <td>📒 몇 달 뒤에도 펼쳐보는 <strong>단골손님 평생 수첩</strong></td>
+              </tr>
+              <tr>
+                <td><strong>핵심 클래스</strong></td>
+                <td><code class="inline">InMemorySaver()</code> (체크포인터)</td>
+                <td><code class="inline">InMemoryStore()</code> (스토어 저장소)</td>
+              </tr>
+              <tr>
+                <td><strong>구분 기준 키</strong></td>
+                <td><code class="inline">thread_id</code> (대화방 번호 기준)</td>
+                <td><code class="inline">namespace</code> 예: <code class="inline">(user_id, category)</code></td>
+              </tr>
+              <tr>
+                <td><strong>기억 범위</strong></td>
+                <td>현재 대화방(<code class="inline">thread_id</code>) 안에서만 유지</td>
+                <td>대화방이 바뀌어도(<code class="inline">thread_id="1" → "2"</code>) 영구 공유</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 1. 8.2 단기 메모리 사용하기 -->
+      <section id="sec-8-2" class="section-card">
+        <span class="chapter-tag">파일: CHAP8_memory/short-term memory.ipynb (8.2절)</span>
+        <h2>1. 챗봇에 단기 메모리(InMemorySaver) 적용하기</h2>
+        <p>기본 LLM(<code class="inline">gemini-3.8-flash</code>)은 한 번 대답하고 나면 방금 무슨 대화를 했는지 즉시 잊어버립니다. 그래프를 컴파일할 때 <code class="inline">checkpointer=InMemorySaver()</code>를 달아주면 대화방 번호(<code class="inline">thread_id</code>)별로 상태를 차곡차곡 기억합니다.</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 8.2.2절 단기 메모리 챗봇 핵심 코드</span>
+            <span class="code-badge">InMemorySaver</span>
+          </div>
+          <pre><span class="c-kw">from</span> langgraph.graph <span class="c-kw">import</span> StateGraph
+<span class="c-kw">from</span> langgraph.graph.message <span class="c-kw">import</span> add_messages
+<span class="c-kw">from</span> langgraph.checkpoint.memory <span class="c-kw">import</span> InMemorySaver
+<span class="c-kw">from</span> langchain_google_genai <span class="c-kw">import</span> ChatGoogleGenerativeAI
+
+<span class="c-comment"># [ 1 ] 대화 기록을 차곡차곡 쌓는(add_messages) 상태 정의</span>
+<span class="c-kw">class</span> <span class="c-fn">State</span>(TypedDict):
+    messages: Annotated[<span class="c-fn">list</span>, add_messages]
+
+<span class="c-comment"># [ 2 ] gemini-3.8-flash 모델 준비</span>
+llm = <span class="c-fn">ChatGoogleGenerativeAI</span>(model=<span class="c-str">"gemini-3.8-flash"</span>)
+
+<span class="c-comment"># [ 3 ] 단기 기억 장치(InMemorySaver)를 연결해 그래프 컴파일!</span>
+checkpointer = <span class="c-fn">InMemorySaver</span>()
+graph = graph_builder.<span class="c-fn">compile</span>(checkpointer=checkpointer)
+
+<span class="c-comment"># 같은 thread_id("1")로 부르면 방금 말한 이름을 정확히 기억합니다!</span>
+graph.<span class="c-fn">invoke</span>({<span class="c-str">"messages"</span>: [{<span class="c-str">"role"</span>: <span class="c-str">"user"</span>, <span class="c-str">"content"</span>: <span class="c-str">"제 이름은 공원나연입니다."</span>}]}, {<span class="c-str">"configurable"</span>: {<span class="c-str">"thread_id"</span>: <span class="c-str">"1"</span>}})
+graph.<span class="c-fn">invoke</span>({<span class="c-str">"messages"</span>: [{<span class="c-str">"role"</span>: <span class="c-str">"user"</span>, <span class="c-str">"content"</span>: <span class="c-str">"제 이름이 뭐라고요?"</span>}]}, {<span class="c-str">"configurable"</span>: {<span class="c-str">"thread_id"</span>: <span class="c-str">"1"</span>}})</pre>
+        </div>
+      </section>
+
+      <!-- 2. 8.3.1 메시지 트리밍 -->
+      <section id="sec-8-3-1" class="section-card">
+        <span class="chapter-tag">파일: CHAP8_memory/short-term memory.ipynb (8.3.1절)</span>
+        <h2>2. 단기 메모리 관리법 ①: 메시지 트리밍 (trim_messages)</h2>
+        <p>대화가 100마디, 1000마디로 길어지면 AI에게 매번 전체 대화를 다 보낼 때 <strong>요금(토큰 비용)이 폭발</strong>하고 응답 속도도 느려집니다. 가장 간단한 해결책은 <strong>가위로 최근 대화 몇 마디만 남기고 앞부분을 잘라내는 것(<code class="inline">trim_messages</code>)</strong>입니다.</p>
+
+        <div class="warn-box">
+          <div class="warn-title">✂️ 트리밍(Trimming)의 장점과 한계</div>
+          <p style="margin-bottom:0;">
+            • <strong>장점</strong>: 추가 AI 호출 없이 글자 수(토큰 수)만 계산해 즉시 잘라내므로 매우 빠르고 경제적입니다.<br/>
+            • <strong>한계</strong>: <code class="inline">max_tokens=128</code>처럼 작게 자르면, 대화 맨 처음에 말했던 <em>"저는 AI를 공부하는 학생입니다"</em>라는 정보가 잘려 나가서 나중에 물어보면 기억하지 못합니다.
+          </p>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 8.3.1절 trim_messages 설정 방법</span>
+            <span class="code-badge">토큰 절약</span>
+          </div>
+          <pre>messages = <span class="c-fn">trim_messages</span>(
+    state[<span class="c-str">"messages"</span>],
+    strategy=<span class="c-str">"last"</span>,                         <span class="c-comment"># 가장 최근(마지막) 메시지부터 남김</span>
+    token_counter=count_tokens_approximately, <span class="c-comment"># 대략적인 토큰 수 계산기</span>
+    max_tokens=<span class="c-num">128</span>,                          <span class="c-comment"># 최대 128토큰까지만 허용</span>
+    start_on=<span class="c-str">"human"</span>,                        <span class="c-comment"># 잘린 뒤 첫 메시지는 반드시 사람 질문으로 시작</span>
+    end_on=(<span class="c-str">"human"</span>, <span class="c-str">"tool"</span>),              <span class="c-comment"># 마지막 메시지는 사람 질문 또는 도구 결과로 끝남</span>
+)</pre>
+        </div>
+      </section>
+
+      <!-- 3. 8.3.2 메시지 요약 -->
+      <section id="sec-8-3-2" class="section-card">
+        <span class="chapter-tag">파일: CHAP8_memory/short-term memory.ipynb (8.3.2절)</span>
+        <h2>3. 단기 메모리 관리법 ②: 메시지 요약 (Summarization)</h2>
+        <p>앞부분 대화를 그냥 버리기 아깝다면 어떻게 할까요? 메시지가 일정 개수(예: 6개)를 넘어가면 <strong>오래된 대화를 한 줄로 요약(<code class="inline">summary</code>)해 포스트잇처럼 붙여두고</strong>, 원본 메시지는 <code class="inline">RemoveMessage</code>로 깔끔히 지우는 방법입니다!</p>
+
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node cond">❓ 메시지 개수 &gt; 6개?</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">📝 7개 이상: summarize_conversation<br/><small>(요약 후 최근 2개만 남기고 삭제)</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">🤖 call_model (요약본+최근대화 전달)</div>
+        </div>
+      </section>
+
+      <!-- 4. 8.4.1 장기 메모리와 시맨틱 검색 -->
+      <section id="sec-8-4-1" class="section-card">
+        <span class="chapter-tag">파일: CHAP8_memory/long-term memory.ipynb (8.4.1절)</span>
+        <h2>4. 장기 메모리(InMemoryStore)와 시맨틱(의미) 검색</h2>
+        <p>장기 메모리는 컴퓨터 폴더처럼 <strong>네임스페이스(<code class="inline">namespace</code> 튜플)</strong>와 <strong>고유 키(<code class="inline">key</code>)</strong>로 데이터를 체계적으로 분류해 저장합니다. 여기에 임베딩 모델을 연결하면 단어가 정확히 일치하지 않아도 <strong>뜻이 비슷한 기억을 찾아내는 시맨틱 검색(<code class="inline">store.search</code>)</strong>이 가능해집니다.</p>
+
+        <div class="concept-grid">
+          <div class="concept-item">
+            <div class="concept-icon">📁</div>
+            <h4>1. 네임스페이스 (Namespace)</h4>
+            <p><strong>"서랍장 폴더 경로"</strong><br/><code class="inline">("user_123", "goals")</code>처럼 사용자 ID와 카테고리를 묶어 방을 나눕니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">📥</div>
+            <h4>2. 저장하기 (store.put)</h4>
+            <p><strong>"수첩에 메모 꽂기"</strong><br/>지정한 폴더(<code class="inline">namespace</code>)와 번호(<code class="inline">key</code>)로 새로운 기억을 저장합니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">🔍</div>
+            <h4>3. 의미 검색 (store.search)</h4>
+            <p><strong>"비슷한 뜻 찾아내기"</strong><br/><code class="inline">query="운동"</code>으로 검색하면 <em>"주 3회 운동"</em>, <em>"5kg 감량"</em>을 똑똑하게 찾아옵니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 8.4.2 ~ 8.4.5 맞춤형 조언 에이전트 -->
+      <section id="sec-8-4-5" class="section-card">
+        <span class="chapter-tag">파일: CHAP8_memory/long-term memory.ipynb (8.4.2 ~ 8.4.5절)</span>
+        <h2>5. [종합 실습] 단기+장기 기억을 모두 갖춘 라이프 코치 에이전트</h2>
+        <p>라이프 코치 에이전트에게 3가지 메모리 도구(<code class="inline">get_user_info</code>, <code class="inline">save_user_info</code>, <code class="inline">search_user_memories</code>)를 쥐여주고, <code class="inline">checkpointer</code>(단기 기억)와 <code class="inline">store</code>(장기 기억)를 동시에 연결합니다.</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 8.4.5절 라이프 코치 에이전트 생성 코드</span>
+            <span class="code-badge">gemini-3.8-flash</span>
+          </div>
+          <pre>model = <span class="c-fn">init_chat_model</span>(<span class="c-str">"google_genai:gemini-3.8-flash"</span>)
+checkpointer = <span class="c-fn">InMemorySaver</span>() <span class="c-comment"># 오늘 통화 기억용 (단기)</span>
+
+agent = <span class="c-fn">create_agent</span>(
+    model=model,
+    tools=[get_user_info, save_user_info, search_user_memories],
+    store=store,               <span class="c-comment"># 단골손님 평생 수첩 연결 (장기)</span>
+    system_prompt=<span class="c-str">"당신은 누적된 사용자 메모리를 활용하여 맞춤 조언을 제공하는 친절한 라이프 코치입니다..."</span>,
+    checkpointer=checkpointer, <span class="c-comment"># 현재 대화방 맥락 유지 (단기)</span>
+)</pre>
+        </div>
+      </section>
+
+      <!-- 6. 인터랙티브 시뮬레이터 -->
+      <section id="simulator" class="section-card">
+        <span class="chapter-tag">🎮 인터랙티브 실습</span>
+        <h2>직접 체험해보기: 단기 메모리 vs 장기 메모리 비교 시뮬레이터</h2>
+        <p>대화방 번호(<code class="inline">thread_id</code>)를 바꿨을 때 <strong>단기 기억(<code class="inline">InMemorySaver</code>)</strong>과 <strong>장기 기억(<code class="inline">InMemoryStore</code>)</strong>이 각각 어떻게 작동하는지 시나리오를 선택해 실험해 보세요!</p>
+
+        <div class="simulator">
+          <div class="sim-title">🧠 랭그래프 메모리 동작 시뮬레이터 (user_id = "user_123")</div>
+          <div class="sim-controls">
+            <select id="simScenario" class="sim-select" onchange="runMemorySim()">
+              <option value="s1">시나리오 1: [thread_id="1"] 첫 상담 - "나 요즘 다이어트 중이고 주 3회 운동해!"</option>
+              <option value="s2">시나리오 2: [thread_id="2" 새 대화방!] "아 오늘 운동 하기 싫다..." (장기 기억 발동!)</option>
+              <option value="s3">시나리오 3: [thread_id="3" 또 새 대화방!] "나에 대해 아는 것 다 말해봐!"</option>
+              <option value="s4">시나리오 4: [단기 메모리 관리 비교] 트리밍(128토큰) vs 요약(Summary) 결과 비교</option>
+            </select>
+            <button class="sim-btn" onclick="runMemorySim()">🚀 시뮬레이션 실행</button>
+          </div>
+          <div id="simOutput" class="sim-result"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    function runMemorySim() {
+      const val = document.getElementById('simScenario').value;
+      const out = document.getElementById('simOutput');
+
+      if (val === 's1') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="badge-pass">📞 현재 대화방: thread_id = "1"</span>
+            <span class="badge-info">👤 사용자: user_123 (mina, 25세)</span>
+          </div>
+          <p style="margin-bottom:8px;"><strong>1단계 (도구 자동 호출):</strong> 에이전트가 사용자의 말에서 핵심 정보를 추출해 <code>save_user_info</code> 도구를 호출합니다.</p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.86rem; margin-bottom:10px;">
+            🛠️ Tool Call: save_user_info(<br/>
+            &nbsp;&nbsp;current_activities=['다이어트'], routines=['주 3회 운동'], goals=['5kg 감량']<br/>
+            )<br/>
+            ✅ InMemoryStore 저장 완료: ('user_123', 'routines') 등 3개 폴더에 영구 기록됨!
+          </div>
+          <p style="margin-bottom:0; color:#1e293b;"><strong>🤖 AI 코치 응답:</strong> "다이어트하고 주 3회 운동하는 게 쉽지 않은 일인데 정말 멋져요! 5kg 감량 목표까지 꾸준히 응원할게요!"</p>
+        `;
+      } else if (val === 's2') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="badge-block">🔄 새 대화방 개설: thread_id = "2" (단기 기억 초기화됨!)</span>
+            <span class="badge-info">👤 사용자: user_123 (동일 인물)</span>
+          </div>
+          <p style="margin-bottom:8px;"><strong>핵심 포인트:</strong> <code>thread_id</code>가 <code>"2"</code>로 바뀌어서 <strong>단기 기억(오늘 통화 메모)은 백지상태</strong>입니다. 하지만 에이전트가 <code>search_user_memories(query="운동")</code>로 <strong>장기 기억 수첩(InMemoryStore)</strong>을 검색합니다!</p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.86rem; margin-bottom:10px;">
+            🔍 Tool Call: search_user_memories(query='운동', category='routines') &rarr; "주 3회 운동"<br/>
+            🔍 Tool Call: search_user_memories(query='운동', category='goals') &rarr; "5kg 감량"
+          </div>
+          <p style="margin-bottom:0; color:#1e293b;"><strong>🤖 AI 코치 응답:</strong> "운동하기 싫은 날도 있죠! 하지만 <strong>주 3회 운동</strong> 루틴을 지키고 계시고 <strong>5kg 감량 목표</strong>도 있으신 만큼 오늘도 가볍게라도 움직여 보면 어떨까요? 😊"</p>
+        `;
+      } else if (val === 's3') {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="badge-pass">📒 전체 장기 기억 브리핑: thread_id = "3"</span>
+          </div>
+          <p style="margin-bottom:8px;"><strong>1단계:</strong> <code>get_user_info</code>와 <code>search_user_memories</code>를 호출해 1번, 2번 대화방에서 쌓인 모든 카테고리 기억을 불러옵니다.</p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.86rem; margin-bottom:10px;">
+            📋 조회된 장기 메모리:<br/>
+            - [기본정보] 이름: mina, 나이: 25<br/>
+            - [current_activities] 다이어트<br/>
+            - [routines] 주 3회 운동<br/>
+            - [goals] 5kg 감량<br/>
+            - [preferences] 닭가슴살 좋아함<br/>
+            - [concerns] 회사일 스트레스
+          </div>
+          <p style="margin-bottom:0; color:#1e293b;"><strong>🤖 AI 코치 응답:</strong> "미나님! 현재 5kg 감량을 목표로 주 3회 운동하며 다이어트 중이시죠. 좋아하는 닭가슴살 식단은 잘 챙겨 드시고 계신가요? 요즘 회사일 스트레스는 좀 어떠신지 궁금해요!"</p>
+        `;
+      } else {
+        out.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <span class="badge-info">⚖️ 8.3절 단기 메모리 관리 방식 비교: "제가 뭘 공부하고 있나요?" 질문 시</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+            <div style="border:1px solid #fecaca; background:#fef2f2; padding:14px; border-radius:10px;">
+              <strong style="color:#991b1b;">✂️ 8.3.1 메시지 트리밍 (max_tokens=128)</strong>
+              <p style="font-size:0.88rem; margin-top:6px; margin-bottom:0; color:#7f1d1d;">
+                첫 메시지(<em>"저는 AI를 공부하는 학생입니다"</em>)가 128토큰 제한에 걸려 가위로 잘려 나감!<br/>
+                👉 <strong>AI 응답:</strong> "죄송하지만 무엇을 공부하고 계신지 알 수 없습니다."
+              </p>
+            </div>
+            <div style="border:1px solid #bbf7d0; background:#f0fdf4; padding:14px; border-radius:10px;">
+              <strong style="color:#166534;">📝 8.3.2 메시지 요약 (Summarization)</strong>
+              <p style="font-size:0.88rem; margin-top:6px; margin-bottom:0; color:#14532d;">
+                오래된 메시지를 지우기 전에 <code>summary</code> 칸에 핵심 요약본을 만들어 시스템 메시지로 전달!<br/>
+                👉 <strong>AI 응답:</strong> "당신은 AI(인공지능)를 공부하고 계신 학생입니다!"
+              </p>
+            </div>
+          </div>
+        `;
+      }
+    }
+    runMemorySim();
+  </script>
+</body>
+</html>

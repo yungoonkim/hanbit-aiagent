@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PART 2. 랭그래프(LangGraph) 기초 완벽 가이드 | 비전공자 맞춤형 교재</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --primary: #4f46e5;
+      --primary-soft: #eef2ff;
+      --secondary: #0ea5e9;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --code-bg: #1e293b;
+      --code-text: #f8fafc;
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* 상단 히어로 배너 */
+    .hero {
+      background: linear-gradient(135deg, #312e81 0%, #4f46e5 55%, #0284c7 100%);
+      color: #ffffff;
+      padding: 64px 24px 56px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 0 auto;
+      font-size: 1.08rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* 레이아웃 */
+    .layout {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static !important;
+      }
+    }
+
+    /* 사이드바 네비게이션 */
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      padding: 0 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-list a {
+      display: block;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.93rem;
+      font-weight: 500;
+      padding: 9px 12px;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-list a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* 본문 섹션 카드 */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 640px) {
+      .section-card {
+        padding: 24px 18px;
+      }
+    }
+
+    .chapter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 5px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .section-card h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .section-card h3 {
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-card p {
+      color: #334155;
+      margin-bottom: 14px;
+    }
+
+    /* 비유 박스 & 팁 박스 */
+    .analogy-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin: 18px 0;
+    }
+
+    .analogy-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+    }
+
+    .tip-box {
+      background: #ecfdf5;
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .tip-title {
+      font-weight: 700;
+      color: #047857;
+      margin-bottom: 6px;
+    }
+
+    .warn-box {
+      background: #fffbeb;
+      border-left: 4px solid var(--warning);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+
+    .warn-title {
+      font-weight: 700;
+      color: #b45309;
+      margin-bottom: 6px;
+    }
+
+    /* 개념 그리드 */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .concept-item {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .concept-icon {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .concept-item h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .concept-item p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    /* 코드 블록 & 줄별 해설 */
+    .code-container {
+      margin: 20px 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .code-header {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-badge {
+      background: rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .c-comment { color: #94a3b8; font-style: italic; }
+    .c-kw { color: #c084fc; font-weight: 600; }
+    .c-str { color: #86efac; }
+    .c-fn { color: #60a5fa; }
+    .c-num { color: #fbbf24; }
+
+    /* 표 스타일 */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-alt);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* 다이어그램 흐름도 */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--surface-alt);
+      padding: 24px;
+      border-radius: 14px;
+      margin: 20px 0;
+      border: 1px dashed #cbd5e1;
+    }
+
+    .flow-node {
+      background: var(--surface);
+      border: 2px solid var(--primary);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .flow-node.start-end {
+      background: var(--primary);
+      color: white;
+      border-radius: 999px;
+    }
+
+    .flow-node.cond {
+      border-color: var(--warning);
+      background: #fffbeb;
+    }
+
+    .flow-arrow {
+      font-weight: 800;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+    }
+
+    /* 인터랙티브 시뮬레이터 */
+    .simulator {
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      border: 2px solid #c7d2fe;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .sim-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sim-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+
+    .sim-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sim-btn:hover {
+      background: #4338ca;
+    }
+
+    .sim-result {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      font-size: 0.93rem;
+    }
+
+    .badge-pass {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    .badge-block {
+      display: inline-block;
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    code.inline {
+      background: #f1f5f9;
+      color: #db2777;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 배너 -->
+  <header class="hero">
+    <div class="hero-badge">📚 만들면서 배우는 AI 에이전트 개발 입문+실전</div>
+    <h1>PART 2. 랭그래프(LangGraph) 기초 완벽 가이드</h1>
+    <p>코딩이 처음인 비전공자도 일상 속 비유와 그림으로 쉽게 이해하는 AI 에이전트 첫걸음 (4.4절 ~ 5.3절)</p>
+  </header>
+
+  <div class="layout">
+    <!-- 왼쪽 목차 사이드바 -->
+    <aside class="sidebar">
+      <div class="sidebar-title">목차 (PART 2)</div>
+      <ul class="nav-list">
+        <li><a href="#intro">🌱 시작하기 전에: 기초 용어 사전</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="#sec-4-4">1️⃣ [4.4절] 첫 AI 모델(LLM) 부르기</a></li>
+        <li><a href="#sec-5-2-1">2️⃣ [5.2.1절] 상태(State)란 무엇일까?</a></li>
+        <li><a href="#sec-5-2-2">3️⃣ [5.2.2절] 리듀서(Reducer)로 기록 쌓기</a></li>
+        <li><a href="#sec-5-2-3">4️⃣ [5.2.3~5절] 노드와 엣지 연결하기</a></li>
+        <li><a href="#sec-5-3-1">5️⃣ [5.3.1절] 입출력 분리형 기본 그래프</a></li>
+        <li><a href="#sec-5-3-2">6️⃣ [5.3.2절] 조건부 가드레일 그래프</a></li>
+        <div class="nav-divider"></div>
+        <li><a href="#index.html" onclick="location.href='index.html'">🏠 전체 챕터 목차로 돌아가기</a></li>
+      </ul>
+    </aside>
+
+    <!-- 오른쪽 본문 영역 -->
+    <main class="content">
+
+      <!-- 0. 비전공자용 기초 용어 사전 -->
+      <section id="intro" class="section-card">
+        <span class="chapter-tag">🌱 워밍업</span>
+        <h2>시작하기 전에: 코딩 &amp; 랭그래프 핵심 용어 4가지</h2>
+        <p>코드를 읽기 전에 아래 4가지 단어만 우리말 비유로 기억해 두면, PART 2의 모든 코드를 막힘없이 읽을 수 있습니다!</p>
+
+        <div class="concept-grid">
+          <div class="concept-item">
+            <div class="concept-icon">📋</div>
+            <h4>1. 상태 (State)</h4>
+            <p><strong>"공유 업무 메모장"</strong><br/>AI 작업자들이 돌려보면서 질문과 답변을 적어두는 공용 바구니(딕셔너리)입니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">🧑‍🍳</div>
+            <h4>2. 노드 (Node)</h4>
+            <p><strong>"작업자 (담당 부서)"</strong><br/>메모장을 받아서 실제로 일(번역, 요약, 검문 등)을 처리하는 파이썬 함수입니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">➡️</div>
+            <h4>3. 엣지 (Edge)</h4>
+            <p><strong>"복도 화살표 (이동 경로)"</strong><br/>A 작업자가 일을 마치면 다음엔 B 작업자에게 가라고 알려주는 길입니다.</p>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon">➕</div>
+            <h4>4. 리듀서 (Reducer)</h4>
+            <p><strong>"메모장 정리 규칙"</strong><br/>새 메모가 들어왔을 때 기존 내용을 지우고 덮어쓸지, 아래에 이어붙일지 정하는 규칙입니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 1. 4.4_main.py -->
+      <section id="sec-4-4" class="section-card">
+        <span class="chapter-tag">파일: PART2/4.4_main.py</span>
+        <h2>1. 첫 번째 AI 모델(LLM) 호출하기</h2>
+        <p>랭그래프를 본격적으로 배우기 전에, 파이썬 코드로 Google의 <strong>gemini-3.5-flash-lite</strong> 모델에게 역할을 부여하고 대화를 나누는 가장 기본적인 방법입니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 일상 비유로 이해하기: 영화 촬영장</div>
+          <p style="margin-bottom:0;">
+            AI에게 말을 걸 때는 두 가지 메시지가 필요합니다.<br/>
+            • <strong>System 메시지</strong> = 감독님이 배우(AI)에게 주는 <em>"너는 지금부터 유능한 영어 번역가야!"</em>라는 <strong>배역 설정서</strong>입니다.<br/>
+            • <strong>Human 메시지</strong> = 실제 관객(사용자)이 배우에게 건네는 <em>"안녕하세요."</em>라는 <strong>대사</strong>입니다.
+          </p>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 PART2/4.4_main.py</span>
+            <span class="code-badge">Python 기초</span>
+          </div>
+          <pre><span class="c-comment"># 1. 필요한 도구 가져오기</span>
+<span class="c-kw">from</span> langchain_google_genai <span class="c-kw">import</span> ChatGoogleGenerativeAI
+<span class="c-kw">from</span> dotenv <span class="c-kw">import</span> load_dotenv
+
+<span class="c-comment"># 2. .env 파일에서 비밀 출입증(GOOGLE_API_KEY) 불러오기</span>
+<span class="c-fn">load_dotenv</span>()
+
+<span class="c-comment"># 3. gemini-3.5-flash-lite 인공지능 모델 준비하기</span>
+llm = <span class="c-fn">ChatGoogleGenerativeAI</span>(model=<span class="c-str">"gemini-3.5-flash-lite"</span>)
+
+<span class="c-comment"># 4. AI에게 전달할 대본(메시지 리스트) 작성하기</span>
+messages = [
+    (<span class="c-str">"system"</span>, <span class="c-str">"당신은 사용자가 한 말을 영어로 번역하는 유능한 번역가입니다."</span>),
+    (<span class="c-str">"human"</span>, <span class="c-str">"안녕하세요."</span>),
+]
+
+<span class="c-comment"># 5. AI 실행하기 (invoke = '작동시키다')</span>
+ai_msg = llm.<span class="c-fn">invoke</span>(messages)
+<span class="c-fn">print</span>(ai_msg)</pre>
+        </div>
+
+        <div class="tip-box">
+          <div class="tip-title">✅ 핵심 문법 포인트</div>
+          <ul style="padding-left: 20px; color: #334155;">
+            <li><code class="inline">load_dotenv()</code>: 내 컴퓨터의 <code class="inline">.env</code> 파일에 적어둔 API 키를 안전하게 불러옵니다. 코드에 비밀번호를 직접 적지 않기 위해 사용합니다.</li>
+            <li><code class="inline">llm.invoke(messages)</code>: <code class="inline">invoke</code>는 랭체인과 랭그래프에서 <strong>"자, 이제 실행해!"</strong>라고 명령할 때 가장 많이 쓰는 마법의 단어입니다.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 2. 5.2.1 그래프의 상태 정의하기 -->
+      <section id="sec-5-2-1" class="section-card">
+        <span class="chapter-tag">파일: PART2/5.2_랭그래프 기본 개념 이해하기.ipynb (5.2.1절)</span>
+        <h2>2. 그래프의 상태(State) 정의하기: TypedDict vs Pydantic</h2>
+        <p>랭그래프에서 여러 단계(노드)를 거치며 일을 처리하려면, 데이터를 담아 전달할 <strong>공유 메모장(State)</strong>의 양식을 먼저 정해야 합니다. 파이썬에서는 주로 <code class="inline">TypedDict</code>와 <code class="inline">Pydantic(BaseModel)</code> 두 가지를 사용합니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 일상 비유: 종이 설문지(TypedDict) vs 인터넷 회원가입 창(Pydantic)</div>
+          <p style="margin-bottom:0;">
+            • <strong>TypedDict (종이 설문지)</strong>: 칸에 "이름(문자)"이라고 적혀 있어서 작성자에게 안내해 주지만, 누군가 이름 칸에 숫자 <code class="inline">123</code>을 적어도 종이가 찢어지거나 막지는 않습니다. (가볍고 빠름)<br/>
+            • <strong>Pydantic BaseModel (인터넷 회원가입 창)</strong>: 이름 칸에 숫자 <code class="inline">123</code>을 적고 '제출'을 누르면 즉시 <strong>"삐빅! 문자열만 입력하세요(ValidationError)"</strong>라며 빨간 경고창을 띄웁니다. (엄격하고 안전함)
+          </p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th><code class="inline">TypedDict</code></th>
+                <th><code class="inline">Pydantic (BaseModel)</code></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>역할</strong></td>
+                <td>데이터 구조(키와 자료형)를 알려주는 가벼운 안내판</td>
+                <td>실제 데이터가 규칙에 맞는지 실행 중에 엄격히 검사하는 보안관</td>
+              </tr>
+              <tr>
+                <td><strong>잘못된 타입 입력 시</strong></td>
+                <td>에러 없이 그대로 통과됨 (<code class="inline">'name': 123</code> 허용)</td>
+                <td>즉시 <code class="inline">ValidationError</code> 발생시켜 실수 차단</td>
+              </tr>
+              <tr>
+                <td><strong>랭그래프 활용</strong></td>
+                <td>속도가 빠르고 간단해서 <strong>기본 상태(State) 정의</strong>에 가장 많이 사용</td>
+                <td>입출력 데이터 검증이 꼭 필요한 중요한 에이전트에 사용</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. 5.2.2 리듀서 함수 추가하기 -->
+      <section id="sec-5-2-2" class="section-card">
+        <span class="chapter-tag">파일: PART2/5.2_랭그래프 기본 개념 이해하기.ipynb (5.2.2절)</span>
+        <h2>3. 상태에 리듀서(Reducer) 함수 추가하기: "왜 대화를 누적하려면 리듀서가 필요할까요?"</h2>
+        <p>랭그래프를 처음 배울 때 가장 많이 궁금해하시는 질문이 바로 <strong>"리듀서(Reducer)라는 게 채팅 대화를 계속 누적시키려고 쓰는 건가요?"</strong>입니다. <strong>네, 정확히 맞습니다!</strong></p>
+        <p>랭그래프의 상태(<code class="inline">State</code>, 공유 메모장)는 아무 설정을 하지 않으면 <strong>새로 들어온 값으로 기존 값을 덮어쓰기(Overwrite, 기존 내용 삭제)</strong>합니다. 따라서 카카오톡 대화창처럼 이전 질문과 AI의 답변을 지우지 않고 <strong>차곡차곡 쌓아두려면 반드시 리듀서(Reducer)</strong>를 지정해야 합니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">💡 한눈에 비교하기: 리듀서가 없을 때(화이트보드 지우기) vs 리듀서가 있을 때(공책에 이어 적기)</div>
+          <p style="margin-bottom:8px;">
+            • <strong>❌ 리듀서가 없을 때 (<code class="inline">messages: list</code>) — "화이트보드 지우고 새로 쓰기"</strong><br/>
+            &nbsp;&nbsp;1) 사용자가 <code class="inline">"안녕! 내 이름은 박철수야"</code>라고 말함 ➡️ <code class="inline">messages = ["안녕! 내 이름은 박철수야"]</code><br/>
+            &nbsp;&nbsp;2) AI 노드가 <code class="inline">"반가워요 철수님!"</code>이라고 답함 ➡️ <strong>기존 질문을 지워버리고</strong> <code class="inline">messages = ["반가워요 철수님!"]</code>만 남음!<br/>
+            &nbsp;&nbsp;3) 다음 턴에 <code class="inline">"내 이름이 뭐라고 했지?"</code>라고 물으면 이전 대화가 사라져서 기억하지 못합니다.<br/><br/>
+            • <strong>✅ 리듀서가 있을 때 (<code class="inline">messages: Annotated[list, add_messages]</code>) — "카카오톡 대화창처럼 아래에 이어 붙이기"</strong><br/>
+            &nbsp;&nbsp;1) 사용자가 <code class="inline">"안녕! 내 이름은 박철수야"</code>라고 말함<br/>
+            &nbsp;&nbsp;2) AI 노드가 <code class="inline">"반가워요 철수님!"</code>을 반환하면, 리듀서(<code class="inline">add_messages</code>)가 작동해 <strong>기존 목록 뒤에 새 대화를 이어 붙입니다.</strong><br/>
+            &nbsp;&nbsp;3) 결과: <code class="inline">messages = ["안녕! 내 이름은 박철수야", "반가워요 철수님!"]</code> (대화 맥락 완벽 유지!)
+          </p>
+        </div>
+
+        <h3>📊 리듀서(Reducer)의 진짜 의미: "기존 값 + 새 값 합치기 규칙"</h3>
+        <p>즉, 리듀서의 본래 의미는 <strong>"노드가 새로운 결과값을 내놓았을 때, 기존 메모장(State)에 있던 값과 어떻게 합칠지 정해주는 규칙(함수)"</strong>입니다. 그래서 변수의 성격에 따라 리듀서를 쓰기도 하고 안 쓰기도 합니다.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>상태(State) 변수 예시</th>
+                <th>코드 작성 방식</th>
+                <th>동작 방식</th>
+                <th>일상 비유</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>채팅 대화 내역</strong></td>
+                <td><code class="inline">messages: Annotated[list, add_messages]</code></td>
+                <td><strong>리듀서 O (누적)</strong></td>
+                <td>카카오톡 대화창처럼 이전 대화 아래에 새 말을 계속 쌓음</td>
+              </tr>
+              <tr>
+                <td><strong>수집한 자료 목록</strong></td>
+                <td><code class="inline">items: Annotated[list, operator.add]</code></td>
+                <td><strong>리듀서 O (누적)</strong></td>
+                <td>여러 에이전트가 찾아온 검색 결과를 하나의 바구니에 합침</td>
+              </tr>
+              <tr>
+                <td><strong>재시도 횟수 / 최신 질문</strong></td>
+                <td><code class="inline">retry_count: int</code><br/><code class="inline">question: str</code></td>
+                <td><strong>리듀서 X (덮어쓰기)</strong></td>
+                <td>이전 값은 필요 없고 <strong>가장 최신 값 1개</strong>로만 갈아끼움</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 리듀서(Reducer)와 add_messages 비교</span>
+            <span class="code-badge">핵심 개념</span>
+          </div>
+          <pre><span class="c-kw">from</span> typing <span class="c-kw">import</span> TypedDict, Annotated
+<span class="c-kw">from</span> langchain_core.messages <span class="c-kw">import</span> AnyMessage
+<span class="c-kw">from</span> langgraph.graph.message <span class="c-kw">import</span> add_messages
+
+<span class="c-comment"># [방법 1] 직접 더하기(+) 함수를 만들어 리듀서로 지정하기</span>
+<span class="c-kw">def</span> <span class="c-fn">add</span>(left, right):
+    <span class="c-kw">return</span> left + right  <span class="c-comment"># 기존 리스트(left) 뒤에 새 리스트(right)를 이어붙임</span>
+
+<span class="c-comment"># [방법 2] 랭그래프 표준 방식: 똑똑한 add_messages 리듀서 사용하기</span>
+<span class="c-kw">class</span> <span class="c-fn">State</span>(TypedDict):
+    messages: Annotated[<span class="c-fn">list</span>[AnyMessage], add_messages]</pre>
+        </div>
+
+        <div class="tip-box">
+          <div class="tip-title">🌟 왜 단순 더하기(add) 대신 add_messages를 쓸까요?</div>
+          <p style="margin-bottom:0;">
+            1. <strong>새로운 ID의 메시지</strong>가 들어오면 → 기존 대화 목록 맨 뒤에 <strong>추가(Append)</strong>합니다.<br/>
+            2. <strong>이미 있는 ID와 똑같은 ID의 메시지</strong>가 들어오면 → 중복해서 쌓지 않고 기존 메시지를 새 내용으로 <strong>똑똑하게 수정(Update)</strong>해 줍니다!
+          </p>
+        </div>
+      </section>
+
+      <!-- 4. 5.2.3 ~ 5.2.5 노드와 엣지 -->
+      <section id="sec-5-2-3" class="section-card">
+        <span class="chapter-tag">파일: PART2/5.2_랭그래프 기본 개념 이해하기.ipynb (5.2.3 ~ 5.2.5절)</span>
+        <h2>4. 노드(Node), 일반 엣지(Edge), 조건부 엣지(Conditional Edge)</h2>
+        <p>상태(메모장)를 만들었다면, 이제 일할 사람(노드)을 뽑고 이동 동선(엣지)을 그려줄 차례입니다.</p>
+
+        <h3>① 노드(Node) 추가하기 = 작업자 배치</h3>
+        <p>노드는 현재 <code class="inline">state</code>를 입력받아 작업을 수행한 뒤, 변경할 내용을 딕셔너리로 반환하는 일반 파이썬 함수입니다.</p>
+
+        <h3>② 일반 엣지 vs 조건부 엣지 = 외길 vs 갈림길</h3>
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START (출발)</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">chatbot 노드</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node cond">❓ 글자 수 &gt; 1000자?</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">True: summary (요약) / False: END (종료)</div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 조건부 엣지(갈림길) 만드는 코드 패턴</span>
+            <span class="code-badge">5.2.5절</span>
+          </div>
+          <pre><span class="c-comment"># 1. 갈림길 안내원(라우팅 함수): 상태를 보고 어디로 갈지 판단합니다.</span>
+<span class="c-kw">def</span> <span class="c-fn">routing_function</span>(state: State):
+    <span class="c-kw">if</span> <span class="c-fn">len</span>(state[<span class="c-str">"messages"</span>][-<span class="c-num">1</span>]) &gt; <span class="c-num">1000</span>:
+        <span class="c-kw">return</span> <span class="c-kw">True</span>   <span class="c-comment"># 1000자가 넘으면 True</span>
+    <span class="c-kw">return</span> <span class="c-kw">False</span>      <span class="c-comment"># 1000자 이하이면 False</span>
+
+<span class="c-comment"># 2. 조건부 화살표 연결: (출발노드, 판단함수, {판단결과: 도착노드})</span>
+graph.<span class="c-fn">add_conditional_edges</span>(
+    <span class="c-str">"chatbot"</span>,
+    routing_function,
+    {<span class="c-kw">True</span>: <span class="c-str">"summary"</span>, <span class="c-kw">False</span>: END}
+)</pre>
+        </div>
+      </section>
+
+      <!-- 5. 5.3.1 기본 그래프 구현하기 -->
+      <section id="sec-5-3-1" class="section-card">
+        <span class="chapter-tag">파일: PART2/5.3_랭그래프로 에이전트 설계하고 구현하기.ipynb (5.3.1절)</span>
+        <h2>5. [실습 1] 입·출력 양식이 분리된 기본 챗봇 그래프</h2>
+        <p>실제 서비스를 만들 때는 <strong>사용자가 넣는 입력(<code class="inline">InputState</code>)</strong>, <strong>내부에서 복잡하게 돌아가는 전체 메모(<code class="inline">OverallState</code>)</strong>, 그리고 <strong>사용자에게 깔끔하게 보여줄 최종 결과(<code class="inline">OutputState</code>)</strong>를 분리하면 훨씬 깔끔합니다.</p>
+
+        <div class="analogy-box">
+          <div class="analogy-title">🍽️ 식당 비유로 이해하는 3가지 State</div>
+          <p style="margin-bottom:0;">
+            • <strong>InputState (손님용 주문서)</strong>: 손님은 복잡하게 알 필요 없이 <code class="inline">question</code>(주문 메뉴)만 적어서 냅니다.<br/>
+            • <strong>OverallState (주방 내부 현황판)</strong>: 주방 안에서는 주문 내역, 조리 기록(<code class="inline">messages</code>), 완성 요리 등을 모두 기록하며 관리합니다.<br/>
+            • <strong>OutputState (손님용 배식 쟁반)</strong>: 손님 식탁에는 주방의 복잡한 메모를 빼고 깔끔하게 완성된 <code class="inline">answer</code>(답변 요리)만 내어갑니다!
+          </p>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>📄 5.3.1절 전체 흐름 요약</span>
+            <span class="code-badge">그래프 컴파일 &amp; 실행</span>
+          </div>
+          <pre><span class="c-comment"># 입구(input_schema)와 출구(output_schema)를 분리하여 그래프 설계도 생성</span>
+graph_builder = <span class="c-fn">StateGraph</span>(
+    OverallState,
+    input_schema=InputState,
+    output_schema=OutputState
+)
+
+<span class="c-comment"># 노드 등록 및 화살표 연결 후 compile()로 실행 가능한 프로그램 완성!</span>
+graph_builder.<span class="c-fn">add_node</span>(<span class="c-str">"chatbot"</span>, chatbot)
+graph_builder.<span class="c-fn">add_edge</span>(START, <span class="c-str">"chatbot"</span>)
+graph_builder.<span class="c-fn">add_edge</span>(<span class="c-str">"chatbot"</span>, END)
+graph = graph_builder.<span class="c-fn">compile</span>()
+
+<span class="c-comment"># 실행 결과: OverallState의 messages는 숨겨지고 OutputState의 answer만 깔끔히 출력됨!</span>
+graph.<span class="c-fn">invoke</span>({<span class="c-str">"question"</span>: <span class="c-str">"대한민국의 수도는 어디인가요?"</span>})
+<span class="c-comment"># 👉 출력: {'answer': '대한민국의 수도는 서울특별시입니다.'}</span></pre>
+        </div>
+      </section>
+
+      <!-- 6. 5.3.2 조건이 추가된 그래프 구현하기 -->
+      <section id="sec-5-3-2" class="section-card">
+        <span class="chapter-tag">파일: PART2/5.3_랭그래프로 에이전트 설계하고 구현하기.ipynb (5.3.2절)</span>
+        <h2>6. [실습 2] 조건이 추가된 '가드레일(검문소)' 그래프 구현하기</h2>
+        <p>사용자가 실수로 <code class="inline">"ㅇ"</code>처럼 의미 없는 한 글자만 입력했는데도 AI(<code class="inline">gemini-3.5-flash-lite</code>)를 호출하면 비용과 시간이 낭비됩니다. 그래서 AI를 부르기 전에 <strong>글자 수를 검사하는 검문소(<code class="inline">guardrail</code> 노드)</strong>를 앞에 세워두는 실습입니다.</p>
+
+        <div class="flow-diagram">
+          <div class="flow-node start-end">START</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">🛡️ guardrail 노드<br/><small>(글자 수 계산)</small></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node cond">❓ 글자 수 &gt; 3 ?</div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node">🤖 4글자 이상: chatbot 실행 후 END<br/>🛑 3글자 이하: 즉시 END (AI 호출 안 함)</div>
+        </div>
+
+        <!-- 인터랙티브 시뮬레이터 -->
+        <div class="simulator">
+          <div class="sim-title">🎮 직접 체험해보기: 5.3.2절 가드레일(Guardrail) 그래프 시뮬레이터</div>
+          <p style="font-size: 0.92rem; margin-bottom: 12px;">아래 입력창에 질문을 입력하고 <strong>[그래프 실행하기]</strong>를 눌러보세요! 글자 수(3글자 초과 여부)에 따라 그래프가 어떤 길을 선택하는지 바로 확인할 수 있습니다.</p>
+          <div class="sim-controls">
+            <input type="text" id="simInput" class="sim-input" value="안녕하세요" placeholder="메시지를 입력해보세요 (예: ㅇ 또는 안녕하세요)" />
+            <button class="sim-btn" onclick="runSimulator()">🚀 그래프 실행하기 (invoke)</button>
+          </div>
+          <div id="simOutput" class="sim-result">
+            여기에 실행 과정과 최종 State 결과가 표시됩니다.
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    function runSimulator() {
+      const inputEl = document.getElementById('simInput');
+      const outputEl = document.getElementById('simOutput');
+      const text = inputEl.value;
+      const len = text.length;
+
+      if (len > 3) {
+        outputEl.innerHTML = `
+          <div style="margin-bottom: 8px;">
+            <span class="badge-pass">✅ 검문 통과 (글자 수: ${len}자 &gt; 3)</span>
+          </div>
+          <p style="margin-bottom: 8px; color: #1e293b;">
+            <strong>이동 경로:</strong> <code>START</code> ➡️ <code>guardrail</code> (길이 ${len} 기록) ➡️ <code>chatbot</code> (gemini-3.5-flash-lite 호출!) ➡️ <code>END</code>
+          </p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.88rem;">
+            {'messages': ['${text}', '안녕하세요! 무엇을 도와드릴까요? (AI 응답)'], 'question_length': ${len}}
+          </div>
+        `;
+      } else {
+        outputEl.innerHTML = `
+          <div style="margin-bottom: 8px;">
+            <span class="badge-block">🛑 가드레일 차단 (글자 수: ${len}자 &le; 3)</span>
+          </div>
+          <p style="margin-bottom: 8px; color: #1e293b;">
+            <strong>이동 경로:</strong> <code>START</code> ➡️ <code>guardrail</code> (길이 ${len} 기록) ➡️ <code>END</code> <em>(chatbot 노드를 건너뛰어 비용 절약!)</em>
+          </p>
+          <div style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-radius:8px; font-family:monospace; font-size:0.88rem;">
+            {'messages': ['${text}'], 'question_length': ${len}}
+          </div>
+        `;
+      }
+    }
+    // 초기 1회 실행
+    runSimulator();
+  </script>
+</body>
+</html>
+
